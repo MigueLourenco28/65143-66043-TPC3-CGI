@@ -33,11 +33,19 @@ function setup(shaders) {
         normals: true
     }
 
+    let color = {
+        current_color: vec3(255, 255, 255)
+    }
+
     const gui = new dat.GUI();
 
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "wireframe");
     optionsGui.add(options, "normals");
+
+    const colorGui = gui.addFolder("color");
+    colorGui.addColor(color, "current_color")
+    .listen();
 
     const cameraGui = gui.addFolder("camera");
 
@@ -176,12 +184,15 @@ function setup(shaders) {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
+    let u_color;
     function render(time) {
         window.requestAnimationFrame(render);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.useProgram(program);
+
+        u_color = gl.getUniformLocation(program, "u_color");
 
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
@@ -195,6 +206,7 @@ function setup(shaders) {
 
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
+        gl.uniform3fv(u_color, color.current_color);
         SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
         CUBE.draw(gl, program, gl.LINES);
     }
