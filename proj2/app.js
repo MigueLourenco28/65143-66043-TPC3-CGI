@@ -17,6 +17,8 @@ function setup(shaders) {
 
     const program = buildProgramFromSources(gl, shaders['shader.vert'], shaders['shader.frag']);
 
+    //------------------Camera Settings GUI------------------//
+
     // Camera  
     let camera = {
         eye: vec3(0, 0, 5),
@@ -74,6 +76,52 @@ function setup(shaders) {
     up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
     up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
     up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+
+    //------------------Camera Settings GUI------------------//
+
+    //------------------Object Settings GUI------------------//
+    const objectGui = new dat.GUI();
+    objectGui.domElement.style.position = "absolute"; //Position GUI to the left
+
+    //TODO: add name selection
+
+    let object_data = {
+        position: vec3(0.0, 0.0, 0.0),
+        rotation: vec3(0, -90, 0),
+        scale: vec3(1.0, 1.0, 1.0),
+    }
+
+    let material = {
+        Ka: vec3(0.2, 0.2, 0.2),
+        Kd: vec3(0.8, 0.8, 0.8),
+        Ks: vec3(0.0, 0.0, 0.0),
+        shininess: 100,
+    }
+
+    const transformGui = objectGui.addFolder("transform");
+
+    const positionGui = transformGui.addFolder("position");
+    positionGui.add(object_data.position, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
+    positionGui.add(object_data.position, 1).name("y").listen().domElement.style.pointerEvents = "none";;
+    positionGui.add(object_data.position, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+
+    const rotationGui = transformGui.addFolder("rotation");
+    rotationGui.add(object_data.rotation, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
+    rotationGui.add(object_data.rotation, 1).name("y").listen().domElement.style.pointerEvents = "none";;
+    rotationGui.add(object_data.rotation, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+
+    const scaleGui = transformGui.addFolder("scale");
+    scaleGui.add(object_data.scale, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
+    scaleGui.add(object_data.scale, 1).name("y").listen().domElement.style.pointerEvents = "none";;
+    scaleGui.add(object_data.scale, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+
+    const materialGui = objectGui.addFolder("material");
+    materialGui.addColor(material, "Ka").listen();
+    materialGui.addColor(material, "Kd").listen();
+    materialGui.addColor(material, "Ks").listen();
+    materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
+
+    //------------------Object Settings GUI------------------//
 
     // matrices
     let mView, mProjection;

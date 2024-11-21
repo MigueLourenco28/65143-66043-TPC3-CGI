@@ -7,7 +7,7 @@ uniform mat4 u_projection;
 uniform mat4 u_model_view;
 uniform mat4 u_normals;
 
-out vec3 v_normal;
+out vec3 v_normal; // Vetor normal constante
 
 void main() {
     gl_Position = u_projection * u_model_view * a_position;
