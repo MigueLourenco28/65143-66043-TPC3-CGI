@@ -3,8 +3,8 @@ import { length, flatten, inverse, mult, normalMatrix, perspective, lookAt, vec4
 
 import * as dat from '../../libs/dat.gui.module.js';
 
-import * as CUBE from '../../libs/objects/cube.js';
-import * as SPHERE from '../../libs/objects/sphere.js';
+import * as COW from '../../libs/objects/cow.js';
+import * as BUNNY from '../../libs/objects/bunny.js';
 
 import * as STACK from '../../libs/stack.js';
 
@@ -12,8 +12,8 @@ function setup(shaders) {
     const canvas = document.getElementById('gl-canvas');
     const gl = setupWebGL(canvas);
 
-    CUBE.init(gl);
-    SPHERE.init(gl);
+    COW.init(gl);
+    BUNNY.init(gl);
 
     const program = buildProgramFromSources(gl, shaders['shader.vert'], shaders['shader.frag']);
 
@@ -255,8 +255,9 @@ function setup(shaders) {
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
         gl.uniform3fv(u_color, color.current_color);
-        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-        CUBE.draw(gl, program, gl.LINES);
+        
+        COW.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        //BUNNY.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     }
 }
 
