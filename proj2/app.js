@@ -86,6 +86,7 @@ function setup(shaders) {
     //TODO: add name selection
 
     let object_data = {
+        name: 'Cow',
         position: vec3(0.0, 0.0, 0.0),
         rotation: vec3(0, -90, 0),
         scale: vec3(1.0, 1.0, 1.0),
@@ -97,6 +98,8 @@ function setup(shaders) {
         Ks: vec3(0.0, 0.0, 0.0),
         shininess: 100,
     }
+
+    objectGui.add(object_data, 'name', ['Cow', 'Bunny']).name('name');
 
     const transformGui = objectGui.addFolder("transform");
 
@@ -116,6 +119,7 @@ function setup(shaders) {
     scaleGui.add(object_data.scale, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
 
     const materialGui = objectGui.addFolder("material");
+
     materialGui.addColor(material, "Ka").listen();
     materialGui.addColor(material, "Kd").listen();
     materialGui.addColor(material, "Ks").listen();
@@ -256,8 +260,10 @@ function setup(shaders) {
 
         gl.uniform3fv(u_color, color.current_color);
         
-        COW.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-        //BUNNY.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        if(object_data.name == 'Cow') 
+            COW.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        else
+            BUNNY.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     }
 }
 
