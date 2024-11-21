@@ -35,8 +35,13 @@ function setup(shaders) {
         normals: true
     }
 
-    let color = {
-        current_color: vec3(255, 255, 255)
+    let objectLight = {
+        position: vec3(0.0, 0.0, 5.0),
+        ambient: vec3(51, 51, 51),
+        diffuse: vec3(76, 76, 76),
+        specular: vec3(255, 255, 255),
+        directional: true,
+        active: true
     }
 
     const gui = new dat.GUI();
@@ -44,10 +49,6 @@ function setup(shaders) {
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "wireframe");
     optionsGui.add(options, "normals");
-
-    const colorGui = gui.addFolder("color");
-    colorGui.addColor(color, "current_color")
-    .listen();
 
     const cameraGui = gui.addFolder("camera");
 
@@ -77,13 +78,23 @@ function setup(shaders) {
     up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
     up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
 
+    const lightsGui = gui.addFolder("lights");
+
+    const objectLightGui = lightsGui.addFolder("object light");
+    objectLightGui.add(objectLight.position, 0).name("x").step(0.05).listen();
+    objectLightGui.add(objectLight.position, 1).name("y").step(0.05).listen();
+    objectLightGui.add(objectLight.position, 2).name("z").step(0.05).listen();
+    objectLightGui.addColor(objectLight, "ambient").listen();
+    objectLightGui.addColor(objectLight, "diffuse").listen();
+    objectLightGui.addColor(objectLight, "specular").listen();
+    objectLightGui.add(objectLight, "directional").listen();
+    objectLightGui.add(objectLight, "active").listen();
+
     //------------------Camera Settings GUI------------------//
 
     //------------------Object Settings GUI------------------//
     const objectGui = new dat.GUI();
     objectGui.domElement.style.position = "absolute"; //Position GUI to the left
-
-    //TODO: add name selection
 
     let object_data = {
         name: 'Cow',
@@ -217,12 +228,10 @@ function setup(shaders) {
         down = true;
         lastX = event.offsetX;
         lastY = event.offsetY;
-        gl.clearColor(0.2, 0.0, 0.0, 1.0);
     });
 
     canvas.addEventListener('mouseup', function (event) {
         down = false;
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
     });
 
     window.requestAnimationFrame(render);
@@ -258,7 +267,7 @@ function setup(shaders) {
 
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
-        gl.uniform3fv(u_color, color.current_color);
+        //gl.uniform3fv(u_color, color.current_color);
         
         if(object_data.name == 'Cow') 
             COW.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
