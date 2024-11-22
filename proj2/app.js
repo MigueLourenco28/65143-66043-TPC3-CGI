@@ -35,6 +35,24 @@ function setup(shaders) {
         normals: true
     }
 
+    let worldLight = {
+        position: vec3(0.0, 0.0, 5.0),
+        ambient: vec3(51, 51, 51),
+        diffuse: vec3(76, 76, 76),
+        specular: vec3(255, 255, 255),
+        directional: true,
+        active: true
+    }
+
+    let cameraLight = {
+        position: vec3(0.0, 0.0, 5.0),
+        ambient: vec3(51, 51, 51),
+        diffuse: vec3(76, 76, 76),
+        specular: vec3(255, 255, 255),
+        directional: true,
+        active: true
+    }
+
     let objectLight = {
         position: vec3(0.0, 0.0, 5.0),
         ambient: vec3(51, 51, 51),
@@ -80,6 +98,26 @@ function setup(shaders) {
 
     const lightsGui = gui.addFolder("lights");
 
+    const worldLightGui = lightsGui.addFolder("world light");
+    worldLightGui.add(worldLight.position, 0).name("x").step(0.05).listen();
+    worldLightGui.add(worldLight.position, 1).name("y").step(0.05).listen();
+    worldLightGui.add(worldLight.position, 2).name("z").step(0.05).listen();
+    worldLightGui.addColor(worldLight, "ambient").listen();
+    worldLightGui.addColor(worldLight, "diffuse").listen();
+    worldLightGui.addColor(worldLight, "specular").listen();
+    worldLightGui.add(worldLight, "directional").listen();
+    worldLightGui.add(worldLight, "active").listen();
+
+    const cameraLightGui = lightsGui.addFolder("camera light");
+    cameraLightGui.add(cameraLight.position, 0).name("x").step(0.05).listen();
+    cameraLightGui.add(cameraLight.position, 1).name("y").step(0.05).listen();
+    cameraLightGui.add(cameraLight.position, 2).name("z").step(0.05).listen();
+    cameraLightGui.addColor(cameraLight, "ambient").listen();
+    cameraLightGui.addColor(cameraLight, "diffuse").listen();
+    cameraLightGui.addColor(cameraLight, "specular").listen();
+    cameraLightGui.add(cameraLight, "directional").listen();
+    cameraLightGui.add(cameraLight, "active").listen();
+
     const objectLightGui = lightsGui.addFolder("object light");
     objectLightGui.add(objectLight.position, 0).name("x").step(0.05).listen();
     objectLightGui.add(objectLight.position, 1).name("y").step(0.05).listen();
@@ -104,6 +142,7 @@ function setup(shaders) {
     }
 
     let material = {
+        shader: 'phong',
         Ka: vec3(0.2, 0.2, 0.2),
         Kd: vec3(0.8, 0.8, 0.8),
         Ks: vec3(0.0, 0.0, 0.0),
@@ -131,6 +170,7 @@ function setup(shaders) {
 
     const materialGui = objectGui.addFolder("material");
 
+    materialGui.add(material, "shader", ['phong', 'gouraud']).name('shader');
     materialGui.addColor(material, "Ka").listen();
     materialGui.addColor(material, "Kd").listen();
     materialGui.addColor(material, "Ks").listen();
