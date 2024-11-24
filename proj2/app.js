@@ -8,6 +8,8 @@ import * as BUNNY from '../../libs/objects/bunny.js';
 
 import * as STACK from '../../libs/stack.js';
 
+let currentShader = 'gouraud';
+
 function setup(shaders) {
     const canvas = document.getElementById('gl-canvas');
     const gl = setupWebGL(canvas);
@@ -15,7 +17,11 @@ function setup(shaders) {
     COW.init(gl);
     BUNNY.init(gl);
 
-    const program = buildProgramFromSources(gl, shaders['shader.vert'], shaders['shader.frag']);
+    let program;
+    if(currentShader == 'gouraud')
+        program = buildProgramFromSources(gl, shaders['shader_gouraud.vert'], shaders['shader_gouraud.frag']);
+    else
+        program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
 
     //------------------Camera Settings GUI------------------//
 
@@ -145,7 +151,7 @@ function setup(shaders) {
     }
 
     let material = {
-        shader: 'phong',
+        shader: 'gouraud',
         Ka: vec3(0.2, 0.2, 0.2),
         Kd: vec3(0.8, 0.8, 0.8),
         Ks: vec3(0.0, 0.0, 0.0),
@@ -173,11 +179,12 @@ function setup(shaders) {
 
     const materialGui = objectGui.addFolder("material");
 
-    materialGui.add(material, "shader", ['phong', 'gouraud']).name('shader');
+    materialGui.add(material, "shader", ['phong', 'gouraud']).name('shader').listen();
     materialGui.addColor(material, "Ka").listen();
     materialGui.addColor(material, "Kd").listen();
     materialGui.addColor(material, "Ks").listen();
     materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
+    currentShader = material.shader;
 
     //------------------Object Settings GUI------------------//
 
@@ -319,6 +326,10 @@ function setup(shaders) {
     }
 }
 
-const urls = ['shader.vert', 'shader.frag'];
+let urls;
+if(currentShader == 'gouraud')
+    urls = ['shader_gouraud.vert', 'shader_gouraud.frag'];
+else
+    urls = ['shader_phong.vert', 'shader_phong.frag'];
 
 loadShadersFromURLS(urls).then(shaders => setup(shaders));
