@@ -5,6 +5,7 @@ import * as dat from '../../libs/dat.gui.module.js';
 
 import * as COW from '../../libs/objects/cow.js';
 import * as BUNNY from '../../libs/objects/bunny.js';
+import * as CUBE from '../../libs/objects/cube.js';
 
 import * as STACK from '../../libs/stack.js';
 
@@ -16,6 +17,7 @@ function setup(shaders) {
 
     COW.init(gl);
     BUNNY.init(gl);
+    CUBE.init(gl);
 
     let program;
     if(currentShader == 'gouraud')
@@ -318,7 +320,7 @@ function setup(shaders) {
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
         //gl.uniform3fv(u_color, color.current_color);
-        
+        CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
         if(object_data.name == 'Cow') 
             COW.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
         else
