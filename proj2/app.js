@@ -99,9 +99,10 @@ function setup(shaders) {
     const lightsGui = gui.addFolder("lights");
 
     const worldLightGui = lightsGui.addFolder("world light");
-    worldLightGui.add(worldLight.position, 0).name("x").step(0.05).listen();
-    worldLightGui.add(worldLight.position, 1).name("y").step(0.05).listen();
-    worldLightGui.add(worldLight.position, 2).name("z").step(0.05).listen();
+    const worldLightPositionGui = worldLightGui.addFolder("position");
+    worldLightPositionGui.add(worldLight.position, 0).name("x").step(0.05).listen();
+    worldLightPositionGui.add(worldLight.position, 1).name("y").step(0.05).listen();
+    worldLightPositionGui.add(worldLight.position, 2).name("z").step(0.05).listen();
     worldLightGui.addColor(worldLight, "ambient").listen();
     worldLightGui.addColor(worldLight, "diffuse").listen();
     worldLightGui.addColor(worldLight, "specular").listen();
@@ -109,9 +110,10 @@ function setup(shaders) {
     worldLightGui.add(worldLight, "active").listen();
 
     const cameraLightGui = lightsGui.addFolder("camera light");
-    cameraLightGui.add(cameraLight.position, 0).name("x").step(0.05).listen();
-    cameraLightGui.add(cameraLight.position, 1).name("y").step(0.05).listen();
-    cameraLightGui.add(cameraLight.position, 2).name("z").step(0.05).listen();
+    const cameraLightPositionGui = cameraLightGui.addFolder("position");
+    cameraLightPositionGui.add(cameraLight.position, 0).name("x").step(0.05).listen();
+    cameraLightPositionGui.add(cameraLight.position, 1).name("y").step(0.05).listen();
+    cameraLightPositionGui.add(cameraLight.position, 2).name("z").step(0.05).listen();
     cameraLightGui.addColor(cameraLight, "ambient").listen();
     cameraLightGui.addColor(cameraLight, "diffuse").listen();
     cameraLightGui.addColor(cameraLight, "specular").listen();
@@ -119,9 +121,10 @@ function setup(shaders) {
     cameraLightGui.add(cameraLight, "active").listen();
 
     const objectLightGui = lightsGui.addFolder("object light");
-    objectLightGui.add(objectLight.position, 0).name("x").step(0.05).listen();
-    objectLightGui.add(objectLight.position, 1).name("y").step(0.05).listen();
-    objectLightGui.add(objectLight.position, 2).name("z").step(0.05).listen();
+    const objectLightPositionGui = objectLightGui.addFolder("position");
+    objectLightPositionGui.add(objectLight.position, 0).name("x").step(0.05).listen();
+    objectLightPositionGui.add(objectLight.position, 1).name("y").step(0.05).listen();
+    objectLightPositionGui.add(objectLight.position, 2).name("z").step(0.05).listen();
     objectLightGui.addColor(objectLight, "ambient").listen();
     objectLightGui.addColor(objectLight, "diffuse").listen();
     objectLightGui.addColor(objectLight, "specular").listen();
