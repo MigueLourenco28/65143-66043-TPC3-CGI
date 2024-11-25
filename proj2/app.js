@@ -20,8 +20,8 @@ function setup(shaders) {
     SPHERE.init(gl);
 
     const gouraud_program = buildProgramFromSources(gl, shaders['shader_gouraud.vert'], shaders['shader_gouraud.frag']);
-    const phong_program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
-    const light_program = buildProgramFromSources(gl, shaders['shader_light.vert'], shaders['shader_light.frag']);
+    //const phong_program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
+    //const light_program = buildProgramFromSources(gl, shaders['shader_light.vert'], shaders['shader_light.frag']);
 
     let current_program = gouraud_program;
 
@@ -280,7 +280,6 @@ function setup(shaders) {
                 lastX = event.offsetX;
                 lastY = event.offsetY;
             }
-
         }
     });
 
@@ -332,8 +331,10 @@ function setup(shaders) {
 
             //gl.uniform4fv(u_color, worldLight.difuse);
 
-            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
-            SPHERE.draw(gl, light_program, gl.TRIANGLES);
+            gl.uniformMatrix4fv(gl.getUniformLocation(gouraud_program, "u_model_view"), false, flatten(STACK.modelView()));
+            //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+            SPHERE.draw(gl, gouraud_program, gl.TRIANGLES);
+            //SPHERE.draw(gl, light_program, gl.TRIANGLES);
         STACK.popMatrix();
 
         STACK.pushMatrix();
@@ -342,8 +343,10 @@ function setup(shaders) {
 
             //gl.uniform4fv(u_color, worldLight.difuse);
 
-            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
-            SPHERE.draw(gl, light_program, gl.TRIANGLES);
+            gl.uniformMatrix4fv(gl.getUniformLocation(gouraud_program, "u_model_view"), false, flatten(STACK.modelView()));
+            //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+            SPHERE.draw(gl, gouraud_program, gl.TRIANGLES);
+            //SPHERE.draw(gl, light_program, gl.TRIANGLES);
         STACK.popMatrix();
 
         STACK.multTranslation(objectLight.position);
@@ -351,8 +354,10 @@ function setup(shaders) {
 
         //gl.uniform4fv(u_color, worldLight.difuse);
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
-        SPHERE.draw(gl, light_program, gl.TRIANGLES);
+        gl.uniformMatrix4fv(gl.getUniformLocation(gouraud_program, "u_model_view"), false, flatten(STACK.modelView()));
+        //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+        SPHERE.draw(gl, gouraud_program, gl.TRIANGLES);
+        //SPHERE.draw(gl, light_program, gl.TRIANGLES);
     }
 
     let u_color;
@@ -362,6 +367,8 @@ function setup(shaders) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.useProgram(current_program);
+        //gl.useProgram(phong_program);
+        //gl.useProgram(light_program);
 
         u_color = gl.getUniformLocation(current_program, "u_color");
 
@@ -388,9 +395,9 @@ function setup(shaders) {
 }
 
 const gouraud_urls = ['shader_gouraud.vert', 'shader_gouraud.frag'];
-const phong_urls = ['shader_phong.vert', 'shader_phong.frag'];
-const light_urls = ['shader_light.vert', 'shader_light.frag'];
+//const phong_urls = ['shader_phong.vert', 'shader_phong.frag'];
+//const light_urls = ['shader_light.vert', 'shader_light.frag'];
 
 loadShadersFromURLS(gouraud_urls).then(shaders => setup(shaders));
-loadShadersFromURLS(phong_urls).then(shaders => setup(shaders));
-loadShadersFromURLS(light_urls).then(shaders => setup(shaders));
+//loadShadersFromURLS(phong_urls).then(shaders => setup(shaders));
+//loadShadersFromURLS(light_urls).then(shaders => setup(shaders));
