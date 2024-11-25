@@ -6,10 +6,9 @@ import * as dat from '../../libs/dat.gui.module.js';
 import * as COW from '../../libs/objects/cow.js';
 import * as BUNNY from '../../libs/objects/bunny.js';
 import * as CUBE from '../../libs/objects/cube.js';
+import * as SPHERE from '../../libs/objects/sphere.js';
 
 import * as STACK from '../../libs/stack.js';
-
-let currentShader = 'gouraud';
 
 function setup(shaders) {
     const canvas = document.getElementById('gl-canvas');
@@ -18,12 +17,13 @@ function setup(shaders) {
     COW.init(gl);
     BUNNY.init(gl);
     CUBE.init(gl);
+    SPHERE.init(gl);
 
-    let program;
-    if(currentShader == 'gouraud')
-        program = buildProgramFromSources(gl, shaders['shader_gouraud.vert'], shaders['shader_gouraud.frag']);
-    else
-        program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
+    const gouraud_program = buildProgramFromSources(gl, shaders['shader_gouraud.vert'], shaders['shader_gouraud.frag']);
+    const phong_program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
+    const light_program = buildProgramFromSources(gl, shaders['shader_light.vert'], shaders['shader_light.frag']);
+
+    let current_program = gouraud_program;
 
     //------------------Camera Settings GUI------------------//
 
@@ -39,12 +39,12 @@ function setup(shaders) {
     }
 
     let options = {
-        wireframe: false,
-        normals: true
+        normals: true,
+        animation: false
     }
 
     let worldLight = {
-        position: vec3(0.0, 0.0, 5.0),
+        position: vec3(0.0, 0.0, 1.0),
         ambient: vec3(51, 51, 51),
         diffuse: vec3(76, 76, 76),
         specular: vec3(255, 255, 255),
@@ -53,7 +53,7 @@ function setup(shaders) {
     }
 
     let cameraLight = {
-        position: vec3(0.0, 0.0, 5.0),
+        position: camera.eye,
         ambient: vec3(51, 51, 51),
         diffuse: vec3(76, 76, 76),
         specular: vec3(255, 255, 255),
@@ -62,7 +62,7 @@ function setup(shaders) {
     }
 
     let objectLight = {
-        position: vec3(0.0, 0.0, 5.0),
+        position: vec3(0.0, 0.0, -1.0),
         ambient: vec3(51, 51, 51),
         diffuse: vec3(76, 76, 76),
         specular: vec3(255, 255, 255),
@@ -73,8 +73,8 @@ function setup(shaders) {
     const gui = new dat.GUI();
 
     const optionsGui = gui.addFolder("options");
-    optionsGui.add(options, "wireframe");
     optionsGui.add(options, "normals");
+    optionsGui.add(options, "animation");
 
     const cameraGui = gui.addFolder("camera");
 
@@ -119,9 +119,9 @@ function setup(shaders) {
 
     const cameraLightGui = lightsGui.addFolder("camera light");
     const cameraLightPositionGui = cameraLightGui.addFolder("position");
-    cameraLightPositionGui.add(cameraLight.position, 0).name("x").step(0.05).listen();
-    cameraLightPositionGui.add(cameraLight.position, 1).name("y").step(0.05).listen();
-    cameraLightPositionGui.add(cameraLight.position, 2).name("z").step(0.05).listen();
+    cameraLightPositionGui.add(cameraLight.position, 0).name("x").listen().domElement.style.pointerEvents = "none";;
+    cameraLightPositionGui.add(cameraLight.position, 1).name("y").listen().domElement.style.pointerEvents = "none";;
+    cameraLightPositionGui.add(cameraLight.position, 2).name("z").listen().domElement.style.pointerEvents = "none";;
     cameraLightGui.addColor(cameraLight, "ambient").listen();
     cameraLightGui.addColor(cameraLight, "diffuse").listen();
     cameraLightGui.addColor(cameraLight, "specular").listen();
@@ -142,13 +142,13 @@ function setup(shaders) {
     //------------------Camera Settings GUI------------------//
 
     //------------------Object Settings GUI------------------//
-    const objectGui = new dat.GUI();
-    objectGui.domElement.style.position = "absolute"; //Position GUI to the left
+    const objectGui = new dat.GUI(); 
+    objectGui.domElement.id = "object-gui";
 
     let object_data = {
         name: 'Cow',
         position: vec3(0.0, 0.0, 0.0),
-        rotation: vec3(0, -90, 0),
+        rotation: vec3(0, 0, 0),
         scale: vec3(1.0, 1.0, 1.0),
     }
 
@@ -170,14 +170,14 @@ function setup(shaders) {
     positionGui.add(object_data.position, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
 
     const rotationGui = transformGui.addFolder("rotation");
-    rotationGui.add(object_data.rotation, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
-    rotationGui.add(object_data.rotation, 1).name("y").listen().domElement.style.pointerEvents = "none";;
-    rotationGui.add(object_data.rotation, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+    rotationGui.add(object_data.rotation, 0).name("x").min(-1.0).domElement.style.pointerEvents = "none";;
+    rotationGui.add(object_data.rotation, 1).name("y").min(-180).max(180).step(1).listen();;
+    rotationGui.add(object_data.rotation, 2).name("z").min(-1.0).domElement.style.pointerEvents = "none";;
 
     const scaleGui = transformGui.addFolder("scale");
-    scaleGui.add(object_data.scale, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
-    scaleGui.add(object_data.scale, 1).name("y").listen().domElement.style.pointerEvents = "none";;
-    scaleGui.add(object_data.scale, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+    scaleGui.add(object_data.scale, 0).name("x").min(0.0).max(1.0).step(0.05).listen();;
+    scaleGui.add(object_data.scale, 1).name("y").min(0.0).max(1.0).step(0.05).listen()
+    scaleGui.add(object_data.scale, 2).name("z").min(0.0).max(1.0).step(0.05).listen();;
 
     const materialGui = objectGui.addFolder("material");
 
@@ -186,7 +186,15 @@ function setup(shaders) {
     materialGui.addColor(material, "Kd").listen();
     materialGui.addColor(material, "Ks").listen();
     materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
-    currentShader = material.shader;
+    
+    switch(material.shader) {
+        case 'gouraud':
+            current_program = gouraud_program;
+            break;
+        case 'phong':
+            current_program = phong_program;
+            break;
+    }
 
     //------------------Object Settings GUI------------------//
 
@@ -297,41 +305,92 @@ function setup(shaders) {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
+    function surfice() {
+        STACK.multTranslation(vec3(0.0, -0.5, 0.0));
+        STACK.multScale(vec3(3.0, 0.01, 3.0));
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        CUBE.draw(gl, current_program, gl.TRIANGLES);
+    }
+
+    function object() {
+        STACK.multTranslation(object_data.position);
+        STACK.multRotationY(object_data.rotation[1]); 
+        STACK.multScale(object_data.scale);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        if(object_data.name == 'Cow') 
+            COW.draw(gl, current_program, gl.TRIANGLES);
+        else
+            BUNNY.draw(gl, current_program, gl.TRIANGLES);
+    }
+
+    function lights() {
+        STACK.pushMatrix();
+            STACK.multTranslation(worldLight.position);
+            STACK.multScale(vec3(0.05, 0.05, 0.05));
+
+            //gl.uniform4fv(u_color, worldLight.difuse);
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+            SPHERE.draw(gl, light_program, gl.TRIANGLES);
+        STACK.popMatrix();
+
+        STACK.pushMatrix();
+            STACK.multTranslation(cameraLight.position);
+            STACK.multScale(vec3(0.05, 0.05, 0.05));
+
+            //gl.uniform4fv(u_color, worldLight.difuse);
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+            SPHERE.draw(gl, light_program, gl.TRIANGLES);
+        STACK.popMatrix();
+
+        STACK.multTranslation(objectLight.position);
+        STACK.multScale(vec3(0.05, 0.05, 0.05));
+
+        //gl.uniform4fv(u_color, worldLight.difuse);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+        SPHERE.draw(gl, light_program, gl.TRIANGLES);
+    }
+
     let u_color;
     function render(time) {
         window.requestAnimationFrame(render);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.useProgram(program);
+        gl.useProgram(current_program);
 
-        u_color = gl.getUniformLocation(program, "u_color");
+        u_color = gl.getUniformLocation(current_program, "u_color");
 
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
 
         mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
 
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_projection"), false, flatten(mProjection));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_model_view"), false, flatten(STACK.modelView()));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_projection"), false, flatten(mProjection));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
-
-        gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
+        gl.uniform1i(gl.getUniformLocation(current_program, "u_use_normals"), options.normals);
 
         //gl.uniform3fv(u_color, color.current_color);
-        CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-        if(object_data.name == 'Cow') 
-            COW.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-        else
-            BUNNY.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        STACK.pushMatrix();
+            surfice();
+        STACK.popMatrix();
+        STACK.pushMatrix();
+            object();
+        STACK.popMatrix();
+        lights();
     }
 }
 
-let urls;
-if(currentShader == 'gouraud')
-    urls = ['shader_gouraud.vert', 'shader_gouraud.frag'];
-else
-    urls = ['shader_phong.vert', 'shader_phong.frag'];
+const gouraud_urls = ['shader_gouraud.vert', 'shader_gouraud.frag'];
+const phong_urls = ['shader_phong.vert', 'shader_phong.frag'];
+const light_urls = ['shader_light.vert', 'shader_light.frag'];
 
-loadShadersFromURLS(urls).then(shaders => setup(shaders));
+loadShadersFromURLS(gouraud_urls).then(shaders => setup(shaders));
+loadShadersFromURLS(phong_urls).then(shaders => setup(shaders));
+loadShadersFromURLS(light_urls).then(shaders => setup(shaders));
