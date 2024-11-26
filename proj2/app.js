@@ -20,8 +20,8 @@ function setup(shaders) {
     SPHERE.init(gl);
 
     const gouraud_program = buildProgramFromSources(gl, shaders['shader_gouraud.vert'], shaders['shader_gouraud.frag']);
-    //const phong_program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
-    //const light_program = buildProgramFromSources(gl, shaders['shader_light.vert'], shaders['shader_light.frag']);
+    const phong_program = buildProgramFromSources(gl, shaders['shader_phong.vert'], shaders['shader_phong.frag']);
+    const light_program = buildProgramFromSources(gl, shaders['shader_light.vert'], shaders['shader_light.frag']);
 
     let current_program = gouraud_program;
 
@@ -308,6 +308,8 @@ function setup(shaders) {
         STACK.multTranslation(vec3(0.0, -0.5, 0.0));
         STACK.multScale(vec3(3.0, 0.01, 3.0));
 
+        // TODO: Draw the object with reflections
+
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         CUBE.draw(gl, current_program, gl.TRIANGLES);
     }
@@ -317,6 +319,8 @@ function setup(shaders) {
         STACK.multRotationY(object_data.rotation[1]); 
         STACK.multScale(object_data.scale);
 
+        // TODO: Draw the object with reflections
+
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         if(object_data.name == 'Cow') 
             COW.draw(gl, current_program, gl.TRIANGLES);
@@ -325,52 +329,43 @@ function setup(shaders) {
     }
 
     function lights() {
+
+        //--------World Light--------//
         STACK.pushMatrix();
             STACK.multTranslation(worldLight.position);
             STACK.multScale(vec3(0.05, 0.05, 0.05));
 
-            //gl.uniform4fv(u_color, worldLight.difuse);
-
-            gl.uniformMatrix4fv(gl.getUniformLocation(gouraud_program, "u_model_view"), false, flatten(STACK.modelView()));
-            //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
-            SPHERE.draw(gl, gouraud_program, gl.TRIANGLES);
-            //SPHERE.draw(gl, light_program, gl.TRIANGLES);
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+            
+            gl.useProgram(light_program);
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(STACK.mProjection()));
+            gl.uniform4fv(gl.getUniformLocation(light_program, "u_color"), vec4(1.0, 1.0, 1.0, 1.0));
+            SPHERE.draw(gl, light_program, gl.TRIANGLES);
+            gl.useProgram(current_program);
         STACK.popMatrix();
 
-        STACK.pushMatrix();
-            STACK.multTranslation(cameraLight.position);
-            STACK.multScale(vec3(0.05, 0.05, 0.05));
+        // Camera light: Deleted this sphere because it cannot be seen
 
-            //gl.uniform4fv(u_color, worldLight.difuse);
-
-            gl.uniformMatrix4fv(gl.getUniformLocation(gouraud_program, "u_model_view"), false, flatten(STACK.modelView()));
-            //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
-            SPHERE.draw(gl, gouraud_program, gl.TRIANGLES);
-            //SPHERE.draw(gl, light_program, gl.TRIANGLES);
-        STACK.popMatrix();
-
+        //---------Object light---------//
         STACK.multTranslation(objectLight.position);
         STACK.multScale(vec3(0.05, 0.05, 0.05));
 
-        //gl.uniform4fv(u_color, worldLight.difuse);
-
-        gl.uniformMatrix4fv(gl.getUniformLocation(gouraud_program, "u_model_view"), false, flatten(STACK.modelView()));
-        //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
-        SPHERE.draw(gl, gouraud_program, gl.TRIANGLES);
-        //SPHERE.draw(gl, light_program, gl.TRIANGLES);
+        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        
+        gl.useProgram(light_program);
+        gl.uniform4fv(gl.getUniformLocation(light_program, "u_color"), vec4(1.0, 1.0, 1.0, 1.0));
+        SPHERE.draw(gl, light_program, gl.TRIANGLES);
+        gl.useProgram(current_program);
     }
 
-    let u_color;
     function render(time) {
         window.requestAnimationFrame(render);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.useProgram(current_program);
-        //gl.useProgram(phong_program);
-        //gl.useProgram(light_program);
-
-        u_color = gl.getUniformLocation(current_program, "u_color");
 
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
@@ -394,10 +389,5 @@ function setup(shaders) {
     }
 }
 
-const gouraud_urls = ['shader_gouraud.vert', 'shader_gouraud.frag'];
-//const phong_urls = ['shader_phong.vert', 'shader_phong.frag'];
-//const light_urls = ['shader_light.vert', 'shader_light.frag'];
-
-loadShadersFromURLS(gouraud_urls).then(shaders => setup(shaders));
-//loadShadersFromURLS(phong_urls).then(shaders => setup(shaders));
-//loadShadersFromURLS(light_urls).then(shaders => setup(shaders));
+const urls = ['shader_gouraud.vert', 'shader_gouraud.frag','shader_phong.vert', 'shader_phong.frag', 'shader_light.vert', 'shader_light.frag'];
+loadShadersFromURLS(urls).then(shaders => setup(shaders));
