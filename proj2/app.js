@@ -25,6 +25,14 @@ function setup(shaders) {
 
     let current_program = gouraud_program;
 
+
+
+ 
+
+
+
+
+
     //------------------Camera Settings GUI------------------//
 
     // Camera  
@@ -176,7 +184,7 @@ function setup(shaders) {
 
     const scaleGui = transformGui.addFolder("scale");
     scaleGui.add(object_data.scale, 0).name("x").min(0.0).max(1.0).step(0.05).listen();;
-    scaleGui.add(object_data.scale, 1).name("y").min(0.0).max(1.0).step(0.05).listen()
+    scaleGui.add(object_data.scale, 1).name("y").min(0.0).max(1.0).step(0.05).listen();;
     scaleGui.add(object_data.scale, 2).name("z").min(0.0).max(1.0).step(0.05).listen();;
 
     const materialGui = objectGui.addFolder("material");
@@ -204,7 +212,7 @@ function setup(shaders) {
     let down = false;
     let lastX, lastY;
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.5, 0.5, 0.5, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
     resizeCanvasToFullWindow();
@@ -339,7 +347,7 @@ function setup(shaders) {
             gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
             
             gl.useProgram(light_program);
-            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(STACK.mProjection()));
+            //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(STACK.mProjection()));
             gl.uniform4fv(gl.getUniformLocation(light_program, "u_color"), vec4(1.0, 1.0, 1.0, 1.0));
             SPHERE.draw(gl, light_program, gl.TRIANGLES);
             gl.useProgram(current_program);
@@ -360,12 +368,39 @@ function setup(shaders) {
         gl.useProgram(current_program);
     }
 
+
+
+
+    function setUniforms() { 
+        // Set material uniforms 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), material.Ka); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), material.Kd); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), material.Ks); 
+        gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess); 
+        // Example light uniform (adjust as needed) 
+
+        if (worldLight.directional) {
+            gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.pos,0.0)); 
+
+        } else {
+            gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.pos,1.0)); 
+
+        }
+
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Ia'), worldLight.ambient); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Id'), worldLight.diffuse); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Is'), worldLight.specular); 
+    };
+
+
     function render(time) {
         window.requestAnimationFrame(render);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.useProgram(current_program);
+
+        setUniforms(); // Ensure uniforms are set before rendering
 
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
@@ -378,7 +413,6 @@ function setup(shaders) {
 
         gl.uniform1i(gl.getUniformLocation(current_program, "u_use_normals"), options.normals);
 
-        //gl.uniform3fv(u_color, color.current_color);
         STACK.pushMatrix();
             surfice();
         STACK.popMatrix();
