@@ -316,8 +316,6 @@ function setup(shaders) {
         STACK.multTranslation(vec3(0.0, -0.5, 0.0));
         STACK.multScale(vec3(3.0, 0.01, 3.0));
 
-        // TODO: Draw the object with reflections
-
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         CUBE.draw(gl, current_program, gl.TRIANGLES);
     }
@@ -326,8 +324,6 @@ function setup(shaders) {
         STACK.multTranslation(object_data.position);
         STACK.multRotationY(object_data.rotation[1]); 
         STACK.multScale(object_data.scale);
-
-        // TODO: Draw the object with reflections
 
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         if(object_data.name == 'Cow') 
@@ -386,7 +382,6 @@ function setup(shaders) {
             gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.pos,1.0)); 
 
         }
-
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Ia'), worldLight.ambient); 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Id'), worldLight.diffuse); 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Is'), worldLight.specular); 
