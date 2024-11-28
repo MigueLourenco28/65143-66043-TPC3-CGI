@@ -162,7 +162,7 @@ function setup(shaders) {
         shininess: 100,
     }
 
-    objectGui.add(object_data, 'name', ['Cow', 'Bunny']).name('name');
+    objectGui.add(object_data, 'name', ['Cow', 'Bunny', 'Sphere', 'Cube']).name('name');
 
     const transformGui = objectGui.addFolder("transform");
 
@@ -262,8 +262,6 @@ function setup(shaders) {
                 eyeAt = mult(inCameraSpace(rotation), eyeAt);
                 newUp = mult(inCameraSpace(rotation), newUp);
 
-                console.log(eyeAt, newUp);
-
                 camera.eye[0] = camera.at[0] + eyeAt[0];
                 camera.eye[1] = camera.at[1] + eyeAt[1];
                 camera.eye[2] = camera.at[2] + eyeAt[2];
@@ -315,8 +313,12 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         if(object_data.name == 'Cow') 
             COW.draw(gl, current_program, gl.TRIANGLES);
-        else
+        else if(object_data.name == 'Bunny')
             BUNNY.draw(gl, current_program, gl.TRIANGLES);
+        else if(object_data.name == 'Sphere')
+            SPHERE.draw(gl, current_program, gl.TRIANGLES);
+        else
+            CUBE.draw(gl, current_program, gl.TRIANGLES);
     }
 
     function lights() {
@@ -324,14 +326,17 @@ function setup(shaders) {
         //--------World Light--------//
         STACK.pushMatrix();
             STACK.multTranslation(worldLight.position);
-            STACK.multScale(vec3(0.05, 0.05, 0.05));
+            STACK.multScale(vec3(0.1, 0.1, 0.1));
 
-            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
             gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(STACK.modelView()));
             
             gl.useProgram(light_program);
-            //gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(STACK.mProjection()));
-            gl.uniform4fv(gl.getUniformLocation(light_program, "u_color"), vec4(1.0, 1.0, 1.0, 1.0));
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(mProjection));
+            
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+
             SPHERE.draw(gl, light_program, gl.TRIANGLES);
             gl.useProgram(current_program);
         STACK.popMatrix();
@@ -340,13 +345,17 @@ function setup(shaders) {
 
         //---------Object light---------//
         STACK.multTranslation(objectLight.position);
-        STACK.multScale(vec3(0.05, 0.05, 0.05));
+        STACK.multScale(vec3(0.1, 0.1, 0.1));
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
-        
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(STACK.modelView()));
+            
         gl.useProgram(light_program);
-        gl.uniform4fv(gl.getUniformLocation(light_program, "u_color"), vec4(1.0, 1.0, 1.0, 1.0));
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(mProjection));
+            
+        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+
         SPHERE.draw(gl, light_program, gl.TRIANGLES);
         gl.useProgram(current_program);
     }
@@ -357,18 +366,24 @@ function setup(shaders) {
             color[2] / 255);
     }
 
+    let lightsToSend = [ 
+        worldLight, 
+        cameraLight, 
+        objectLight 
+    ]; 
+
     function setUniforms() { 
-        if(worldLight.active) {
-            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
-            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
-            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
-            gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
+        gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess);
+        gl.uniform1i(gl.getUniformLocation(current_program, 'u_numLights'), lightsToSend.length); 
 
-            gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0));
-
-            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Ia'), normalizeColor(worldLight.ambient)); 
-            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Id'), normalizeColor(worldLight.diffuse)); 
-            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Is'), normalizeColor(worldLight.specular)); 
+        for (let i = 0; i < lightsToSend.length; i++) { let light = lightsToSend[i]; 
+            gl.uniform4fv(gl.getUniformLocation(current_program, `u_lights[${i}].pos`), vec4(light.position, light.directional ? 0.0 : 1.0));
+            gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Ia`), normalizeColor(light.ambient)); 
+            gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Id`), normalizeColor(light.diffuse));
+            gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Is`), normalizeColor(light.specular)); 
         }
     };
 

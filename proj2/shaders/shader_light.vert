@@ -3,6 +3,7 @@
 uniform mat4 u_model_view;
 uniform mat4 u_projection;
 
+
 in vec4 a_position;
 in vec3 a_normal;
 
