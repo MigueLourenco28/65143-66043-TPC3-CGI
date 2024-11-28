@@ -39,8 +39,8 @@ function setup(shaders) {
     }
 
     let options = {
-        backface_culling: false,
-        zBuffer: false,
+        backface_culling: true,
+        zBuffer: true,
         animation: false
     }
 
@@ -189,10 +189,7 @@ function setup(shaders) {
     materialGui.addColor(material, "Ks").listen();
     materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
     
-    if (material.shader === 'phong') 
-        current_program = phong_program;
-    else 
-        current_program = gouraud_program;
+
 
     //------------------Object Settings GUI------------------//
 
@@ -302,7 +299,7 @@ function setup(shaders) {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
-    function surfice() {
+    function surface() {
         STACK.multTranslation(vec3(0.0, -0.5, 0.0));
         STACK.multScale(vec3(3.0, 0.01, 3.0));
 
@@ -382,6 +379,12 @@ function setup(shaders) {
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        if (material.shader === 'phong') {
+            current_program = phong_program;}
+        else {
+            current_program = gouraud_program;
+        }
+
         gl.useProgram(current_program);
 
         setUniforms(); // Ensure uniforms are set before rendering
@@ -410,7 +413,7 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view_normals"), false, flatten(u_view_normals));
 
         STACK.pushMatrix();
-            surfice();
+            surface();
         STACK.popMatrix();
         STACK.pushMatrix();
             object();
