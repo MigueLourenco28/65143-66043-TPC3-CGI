@@ -65,6 +65,6 @@ void main() {
 
     gl_Position = u_projection * u_model_view * v_position;
 
-    //color = vec4(u_light.Ia,1.0);
+    //color = vec4(u_material.Ka,1.0);
     color = vec4(ambientColor + diffuse + specular, 1.0);
 }
