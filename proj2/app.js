@@ -365,6 +365,8 @@ function setup(shaders) {
         gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess); 
         
         // Transform worldLight position to camera coordinates
+        // TODO: mult mView with vec4
+        // const worldLightCamSpace = mult(mView, vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0));
         const worldLightCamSpace = vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0);
         gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), flatten(worldLightCamSpace));
 
