@@ -25,14 +25,6 @@ function setup(shaders) {
 
     let current_program = gouraud_program;
 
-
-
- 
-
-
-
-
-
     //------------------Camera Settings GUI------------------//
 
     // Camera  
@@ -47,7 +39,7 @@ function setup(shaders) {
     }
 
     let options = {
-        normals: true,
+        backface_culling: true,
         animation: false
     }
 
@@ -81,7 +73,7 @@ function setup(shaders) {
     const gui = new dat.GUI();
 
     const optionsGui = gui.addFolder("options");
-    optionsGui.add(options, "normals");
+    optionsGui.add(options, "backface_culling");
     optionsGui.add(options, "animation");
 
     const cameraGui = gui.addFolder("camera");
@@ -364,7 +356,6 @@ function setup(shaders) {
         gl.useProgram(current_program);
     }
 
-
     function normalizeColor(color) { 
         return vec3(color[0] / 255, 
             color[1] / 255, 
@@ -409,8 +400,9 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_projection"), false, flatten(mProjection));
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
-
-        gl.uniform1i(gl.getUniformLocation(current_program, "u_use_normals"), options.normals);
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view"), false, flatten(mView));
+        let u_view_normals = normalMatrix(mView);
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view_normals"), false, flatten(u_view_normals));
 
         STACK.pushMatrix();
             surfice();
