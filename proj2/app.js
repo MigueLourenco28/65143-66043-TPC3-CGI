@@ -39,7 +39,8 @@ function setup(shaders) {
     }
 
     let options = {
-        backface_culling: true,
+        backface_culling: false,
+        zBuffer: false,
         animation: false
     }
 
@@ -74,6 +75,7 @@ function setup(shaders) {
 
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "backface_culling");
+    optionsGui.add(options, "zBuffer");
     optionsGui.add(options, "animation");
 
     const cameraGui = gui.addFolder("camera");
@@ -187,14 +189,10 @@ function setup(shaders) {
     materialGui.addColor(material, "Ks").listen();
     materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
     
-    switch(material.shader) {
-        case 'gouraud':
-            current_program = gouraud_program;
-            break;
-        case 'phong':
-            current_program = phong_program;
-            break;
-    }
+    if (material.shader === 'phong') 
+        current_program = phong_program;
+    else 
+        current_program = gouraud_program;
 
     //------------------Object Settings GUI------------------//
 
@@ -369,14 +367,10 @@ function setup(shaders) {
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
         gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess); 
         
-        // Example light uniform (adjust as needed) 
-        if (worldLight.directional) {
-            gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.pos,0.0)); 
+        // Transform worldLight position to camera coordinates
+        const worldLightCamSpace = vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0);
+        gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), flatten(worldLightCamSpace));
 
-        } else {
-            gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.pos,1.0)); 
-
-        }
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Ia'), normalizeColor(worldLight.ambient)); 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Id'), normalizeColor(worldLight.diffuse)); 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Is'), normalizeColor(worldLight.specular)); 
@@ -391,6 +385,17 @@ function setup(shaders) {
         gl.useProgram(current_program);
 
         setUniforms(); // Ensure uniforms are set before rendering
+
+        if (options.backface_culling) 
+            gl.enable(gl.CULL_FACE);
+        else 
+            gl.disable(gl.CULL_FACE);
+
+        if (options.zBuffer)
+            gl.enable(gl.DEPTH_TEST);
+        else
+            gl.disable(gl.DEPTH_TEST);
+
 
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
