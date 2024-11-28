@@ -1,42 +1,47 @@
 #version 300 es
 
 precision mediump float;
-in vec3 normalInterp;  // Surface normal
-in vec3 vertPos;       // Vertex position
-out vec4 fragColor;    // Fragment color
-uniform int mode;   // Rendering mode
-uniform float Ka;   // Ambient reflection coefficient
-uniform float Kd;   // Diffuse reflection coefficient
-uniform float Ks;   // Specular reflection coefficient
-uniform float shininessVal; // Shininess
-// Material color
-uniform vec3 ambientColor;
-uniform vec3 diffuseColor;
-uniform vec3 specularColor;
-uniform vec3 lightPos; // Light position
+
+const int MAX_LIGHTS = 8;
+struct MaterialInfo {
+    vec3 Ka;            // Ambient reflection coefficient
+    vec3 Kd;            // Diffuse reflection coefficient
+    vec3 Ks;            // Specular reflection coefficient
+    float shininess;
+};
+
+uniform MaterialInfo u_material;
+
+in vec3 Ia;         // Light ambient intensity
+in vec3 Id;         // Light diffuse intensity
+in vec3 Is;         // Light specular intensity
+
+in vec3 fLight;        // Light vector
+in vec3 fViewer;       // Vector to viewer
+in vec3 fNormal;       // Surface normal
+in vec3 fPosition;     // Vertex position
+
+out vec4 fColor;       // Fragment color
 
 void main() {
-  vec3 N = normalize(normalInterp);
-  vec3 L = normalize(lightPos - vertPos);
+  // Material color
+  vec3 ambientColor = Ia * u_material.Ka;     // Ia*Ka
+  vec3 diffuseColor = Id * u_material.Kd;     // Id*Kd 
+  vec3 specularColor = Is * u_material.Ks;    // Is*Ks
 
-  // Lambert's cosine law
-  float lambertian = max(dot(N, L), 0.0);
-  float specular = 0.0;
-  if(lambertian > 0.0) {
-    vec3 R = reflect(-L, N);      // Reflected light vector
-    vec3 V = normalize(-vertPos); // Vector to viewer
-    // Compute the specular term
-    float specAngle = max(dot(R, V), 0.0);
-    specular = pow(specAngle, shininessVal);
-  }
-  fragColor = vec4(Ka * ambientColor +
-                   Kd * lambertian * diffuseColor +
-                   Ks * specular * specularColor, 1.0);
+  vec3 L = normalize(fLight); 
+  vec3 V = normalize(fViewer); 
+  vec3 N = normalize(fNormal); 
+  vec3 H = normalize(L+V);
 
-  // only ambient
-  fragColor = vec4(Ka * ambientColor, 1.0);
-  // only diffuse
-  fragColor = vec4(Kd * lambertian * diffuseColor, 1.0);
-  // only specular
-  fragColor = vec4(Ks * specular * specularColor, 1.0);
+  float diffuseFactor = max( dot(L,N), 0.0 ); 
+  vec3 diffuse = diffuseFactor * diffuseColor;
+
+  float specularFactor = pow(max(dot(N,H), 0.0), u_material.shininess); 
+  vec3 specular = specularFactor * specularColor;
+
+  if(dot(L,N) < 0.0 ) 
+    specular = vec3(0.0, 0.0, 0.0); 
+
+  fColor = vec4(ambientColor + diffuse + specular, 1.0);
 }

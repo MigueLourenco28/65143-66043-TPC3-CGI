@@ -150,7 +150,7 @@ function setup(shaders) {
     let object_data = {
         name: 'Cow',
         position: vec3(0.0, 0.0, 0.0),
-        rotation: vec3(0, 0, 0),
+        rotation: vec3(0, -90, 0),
         scale: vec3(1.0, 1.0, 1.0),
     }
 
@@ -358,21 +358,18 @@ function setup(shaders) {
     }
 
     function setUniforms() { 
-        // Set material uniforms 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
-        gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess); 
-        
-        // Transform worldLight position to camera coordinates
-        // TODO: mult mView with vec4
-        // const worldLightCamSpace = mult(mView, vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0));
-        const worldLightCamSpace = vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0);
-        gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), flatten(worldLightCamSpace));
+        if(worldLight.active) {
+            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
+            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
+            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
+            gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess); 
 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Ia'), normalizeColor(worldLight.ambient)); 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Id'), normalizeColor(worldLight.diffuse)); 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Is'), normalizeColor(worldLight.specular)); 
+            gl.uniform4fv(gl.getUniformLocation(current_program, 'u_light.pos'), vec4(worldLight.position, worldLight.directional ? 0.0 : 1.0));
+
+            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Ia'), normalizeColor(worldLight.ambient)); 
+            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Id'), normalizeColor(worldLight.diffuse)); 
+            gl.uniform3fv(gl.getUniformLocation(current_program, 'u_light.Is'), normalizeColor(worldLight.specular)); 
+        }
     };
 
 
