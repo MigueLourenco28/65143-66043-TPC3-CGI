@@ -384,8 +384,8 @@ function setup(shaders) {
             gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Ia`), normalizeColor(light.ambient)); 
             gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Id`), normalizeColor(light.diffuse));
             gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Is`), normalizeColor(light.specular)); 
-        }
-    };
+        } 
+    }
 
 
     function render(time) {

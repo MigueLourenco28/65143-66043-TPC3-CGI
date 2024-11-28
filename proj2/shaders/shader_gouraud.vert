@@ -56,20 +56,20 @@ void main() {
         else  
             L = normalize((u_view*u_lights[i].pos).xyz - posC);
 
-        float diffuseFactor = max(dot(L,N), 0.0); // Prevent retro-ilumination
-        float specularFactor = pow(max(dot(N,H), 0.0), u_material.shininess); // Intensity of the specular reflexion
+    float diffuseFactor = max(dot(L,N), 0.0); // Prevent retro-ilumination
+    float specularFactor = pow(max(dot(N,H), 0.0), u_material.shininess); // Intensity of the specular reflexion
 
-        vec3 diffuse = diffuseFactor * u_lights[i].Id * u_material.Kd;
-        vec3 specular = specularFactor * u_lights[i].Is * u_material.Ks;
+    vec3 diffuse = diffuseFactor * u_lights[i].Id * u_material.Kd;
+    vec3 specular = specularFactor * u_lights[i].Is * u_material.Ks;
 
 
-        // If the light is pointing to the back of the surface
-        if(dot(L,N) < 0.0)
-            specular = vec3(0.0, 0.0, 0.0);
+    // If the light is pointing to the back of the surface
+    if(dot(L,N) < 0.0)
+        specular = vec3(0.0, 0.0, 0.0);
 
-        totalAmbient += u_lights[i].Ia * u_material.Ka;
-        totalDiffuse += diffuse;
-        totalSpecular += specular;
+    totalAmbient += u_lights[i].Ia * u_material.Ka;
+    totalDiffuse += diffuse;
+    totalSpecular += specular;
 
     }
 
