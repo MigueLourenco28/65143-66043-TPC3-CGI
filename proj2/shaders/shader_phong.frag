@@ -1,6 +1,8 @@
 #version 300 es
 
 precision mediump float;
+precision mediump int;
+
 
 const int MAX_LIGHTS = 8;
 struct MaterialInfo {
@@ -11,37 +13,44 @@ struct MaterialInfo {
 };
 
 uniform MaterialInfo u_material;
-
-in vec3 Ia;         // Light ambient intensity
-in vec3 Id;         // Light diffuse intensity
-in vec3 Is;         // Light specular intensity
+uniform int u_numLights;
 
 in vec3 fLight;        // Light vector
 in vec3 fViewer;       // Vector to viewer
 in vec3 fNormal;       // Surface normal
 in vec3 fPosition;     // Vertex position
+in vec3 packedLightData[MAX_LIGHTS * 3]; // Packed light data
 
 out vec4 fColor;       // Fragment color
 
 void main() {
-  // Material color
-  vec3 ambientColor = Ia * u_material.Ka;     // Ia*Ka
-  vec3 diffuseColor = Id * u_material.Kd;     // Id*Kd 
-  vec3 specularColor = Is * u_material.Ks;    // Is*Ks
 
-  vec3 L = normalize(fLight); 
-  vec3 V = normalize(fViewer); 
+  vec3 ambient = vec3(0.0); 
+  vec3 diffuse = vec3(0.0); 
+  vec3 specular = vec3(0.0);
+
   vec3 N = normalize(fNormal); 
-  vec3 H = normalize(L+V);
+  vec3 V = normalize(fViewer);
 
-  float diffuseFactor = max( dot(L,N), 0.0 ); 
-  vec3 diffuse = diffuseFactor * diffuseColor;
+  for (int i = 0; i < u_numLights; i++) {
 
-  float specularFactor = pow(max(dot(N,H), 0.0), u_material.shininess); 
-  vec3 specular = specularFactor * specularColor;
+    vec3 Ia = packedLightData[i * 3 + 0]; 
+    vec3 Id = packedLightData[i * 3 + 1]; 
+    vec3 Is = packedLightData[i * 3 + 2];
 
-  if(dot(L,N) < 0.0 ) 
-    specular = vec3(0.0, 0.0, 0.0); 
+    vec3 L = normalize(fLight); 
+    vec3 H = normalize(L + V);
 
-  fColor = vec4(ambientColor + diffuse + specular, 1.0);
+    ambient += Ia * u_material.Ka; 
+    float diffuseFactor = max(dot(L, N), 0.0); 
+    diffuse += diffuseFactor * Id * u_material.Kd; 
+    float specularFactor = pow(max(dot(N, H), 0.0), u_material.shininess); 
+    specular += specularFactor * Is * u_material.Ks;
+
+
+    if(dot(L,N) < 0.0 ) 
+      specular = vec3(0.0, 0.0, 0.0); 
+
+  }
+  fColor = vec4(ambient + diffuse + specular, 1.0);
 }
