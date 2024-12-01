@@ -377,26 +377,29 @@ function setup(shaders) {
         gl.useProgram(current_program);
     }
 
-    let lightsToSend = [ 
+    let allLights = [ 
         worldLight, 
         cameraLight, 
         objectLight 
     ]; 
 
-    lightsToSend = lightsToSend.filter(light => light.active);
 
     function setUniforms() { 
+
+        let lightsToSend = allLights.filter(light => light.active);
+
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
         gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess);
         gl.uniform1i(gl.getUniformLocation(current_program, 'u_numLights'), lightsToSend.length); 
 
-        for (let i = 0; i < lightsToSend.length; i++) { let light = lightsToSend[i]; 
-            gl.uniform4fv(gl.getUniformLocation(current_program, `u_lights[${i}].pos`), vec4(light.position, light.directional ? 0.0 : 1.0));
-            gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Ia`), normalizeColor(light.ambient)); 
-            gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Id`), normalizeColor(light.diffuse));
-            gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Is`), normalizeColor(light.specular)); 
+        for (let i = 0; i < lightsToSend.length; i++) { 
+            let light = lightsToSend[i];
+                gl.uniform4fv(gl.getUniformLocation(current_program, `u_lights[${i}].pos`), vec4(light.position, light.directional ? 0.0 : 1.0));
+                gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Ia`), normalizeColor(light.ambient)); 
+                gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Id`), normalizeColor(light.diffuse));
+                gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Is`), normalizeColor(light.specular)); 
         } 
     }
 
