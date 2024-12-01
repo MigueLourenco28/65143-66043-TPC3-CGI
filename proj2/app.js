@@ -168,7 +168,7 @@ function setup(shaders) {
 
     const positionGui = transformGui.addFolder("position");
     positionGui.add(object_data.position, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
-    positionGui.add(object_data.position, 1).name("y").listen().domElement.style.pointerEvents = "none";;
+    positionGui.add(object_data.position, 1).name("y").min(0.0).max(1.0).step(0.05).listen().domElement.style.pointerEvents = "none";;
     positionGui.add(object_data.position, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
 
     const rotationGui = transformGui.addFolder("rotation");
@@ -321,6 +321,13 @@ function setup(shaders) {
             CUBE.draw(gl, current_program, gl.TRIANGLES);
     }
 
+
+    function normalizeColor(color) { 
+        return vec3(color[0] / 255.0, 
+            color[1] / 255.0, 
+            color[2] / 255.0);
+    }
+
     function lights() {
 
         //--------World Light--------//
@@ -336,6 +343,11 @@ function setup(shaders) {
             gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(mProjection));
             
             gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+
+            if(worldLight.active) 
+                gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), normalizeColor(worldLight.diffuse));
+            else 
+                gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), vec3(0.0, 0.0, 0.0));
 
             SPHERE.draw(gl, light_program, gl.TRIANGLES);
             gl.useProgram(current_program);
@@ -356,14 +368,13 @@ function setup(shaders) {
             
         gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
 
+        if(objectLight.active) 
+            gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), normalizeColor(objectLight.diffuse));
+        else 
+            gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), vec3(0.0, 0.0, 0.0));
+
         SPHERE.draw(gl, light_program, gl.TRIANGLES);
         gl.useProgram(current_program);
-    }
-
-    function normalizeColor(color) { 
-        return vec3(color[0] / 255, 
-            color[1] / 255, 
-            color[2] / 255);
     }
 
     let lightsToSend = [ 
@@ -371,6 +382,8 @@ function setup(shaders) {
         cameraLight, 
         objectLight 
     ]; 
+
+    lightsToSend = lightsToSend.filter(light => light.active);
 
     function setUniforms() { 
         gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
@@ -387,7 +400,9 @@ function setup(shaders) {
         } 
     }
 
-
+    let speed = 0.005; // Speed of the animation
+    let amplitude = 0.5; // Amplitude of the animation
+    let baseHeight = object_data.position[1]; // Base height of the object
     function render(time) {
         window.requestAnimationFrame(render);
 
@@ -412,6 +427,16 @@ function setup(shaders) {
             gl.enable(gl.DEPTH_TEST);
         else
             gl.disable(gl.DEPTH_TEST);
+
+        // Animate the object (up and down)
+        if (options.animation) {
+            // Update position to ensure it never goes below the base height
+            object_data.position[1] = baseHeight + amplitude * (Math.sin(time * speed) + 1) / 2;
+
+            // Update rotation
+            object_data.rotation[1] = time * 50 * speed;
+        }
+            
 
 
         mView = lookAt(camera.eye, camera.at, camera.up);
