@@ -33,7 +33,7 @@ function setup(shaders) {
         at: vec3(0, 0, 0),
         up: vec3(0, 1, 0),
         fovy: 45,
-        aspect: 1, // Updated further down
+        aspect: 1,
         near: 0.1,
         far: 20
     }
@@ -45,50 +45,50 @@ function setup(shaders) {
     }
     // Lights
     let worldLight = {
-        position: vec3(0.0, 0.0, 1.0),
-        ambient: vec3(51, 51, 51),
-        diffuse: vec3(76, 76, 76),
-        specular: vec3(255, 255, 255),
-        directional: true,
-        active: true
+        position: vec3(0.0, 0.0, 0.0),
+        ambient: vec3(0, 0, 0),
+        diffuse: vec3(0, 0, 0),
+        specular: vec3(0, 0, 0),
+        directional: false,
+        active: false
     }
 
     let cameraLight = {
         position: camera.eye,
-        ambient: vec3(51, 51, 51),
-        diffuse: vec3(76, 76, 76),
-        specular: vec3(255, 255, 255),
-        directional: true,
-        active: true
+        ambient: vec3(0, 0, 0),
+        diffuse: vec3(0, 0, 0),
+        specular: vec3(0, 0, 0),
+        directional: false,
+        active: false
     }
 
     let objectLight = {
-        position: vec3(0.0, 0.0, -1.0),
-        ambient: vec3(51, 51, 51),
-        diffuse: vec3(76, 76, 76),
-        specular: vec3(255, 255, 255),
-        directional: true,
-        active: true
+        position: vec3(0.0, 0.0, 0.0),
+        ambient: vec3(0, 0, 0),
+        diffuse: vec3(0, 0, 0),
+        specular: vec3(0, 0, 0),
+        directional: false,
+        active: false
     }
 
     // Objects
-    // Fetch is asynchronous so we initialize object_data with data to avoid errors until JSON's data is retrieved
+    // Fetch is asynchronous so we initialize lights, object and material to avoid errors until JSON's data is retrieved
     let object_data = {
         name: 'default',
         position: vec3(0.0, 0.0, 0.0),
         rotation: vec3(0.0, 0.0, 0.0),
-        scale: vec3(0.0, 0.0, 0.0),
+        scale: vec3(0.0, 0.0, 0.0)
     }
-    
 
     let material = {
-        shader: 'gouraud',
-        Ka: vec3(100.0, 100.0, 100.0),
-        Kd: vec3(100.0, 100.0, 100.0),
-        Ks: vec3(100.0, 100.0, 100.0),
-        shininess: 100,
+        shader: 'default',
+        Ka: vec3(0.0, 0.0, 0.0),
+        Kd: vec3(0.0, 0.0, 0.0),
+        Ks: vec3(0.0, 0.0, 0.0),
+        shininess: 0
     }
 
+    const gui = new dat.GUI();
 
 
     // Fetch the JSON file
@@ -100,40 +100,87 @@ function setup(shaders) {
             return response.json();
         })
         .then(data => {
-            const object = data.scene.object;
-            // Initialize and fill your object_data with JSON content
-            setupObject(object);
-            
-            console.log(object_data);
-            console.log("before");
-
-            console.log("after");
+            const world = data.scene;
+            loadScene(world);
         })
         .catch(error => {
             console.error('Error fetching the JSON file:', error);
         });
 
-
-        function setupObject(data) {
-            object_data.name = data.name;
-            object_data.position = data.position;
-            object_data.rotation = data.rotation;
-            object_data.scale = data.scale;
+        
+        function loadScene(data) {
+            loadCamera(data);
+            loadObject(data);
+            loadMaterial(data);
+            loadLights(data);
+            setupGUI();
         }
 
-        setupGUI();
-        
+
+        function loadCamera(data) {
+            camera.up = data.camera.up;
+            camera.fovy = data.camera.fovy; // Updated further down
+            camera.near = data.camera.near;
+            camera.far = data.camera.far;
+        }
+
+
+        function loadObject(data) {
+            object_data.name = data.object.name;
+            object_data.position = data.object.position;
+            object_data.rotation = data.object.rotation;
+            object_data.scale = data.object.scale;
+        }
+
+
+        function loadMaterial(data) {
+            material.shader = data.material.shader;
+            material.Ka = data.material.Ka;
+            material.Kd = data.material.Kd;
+            material.Ks = data.material.Ks;
+            material.shininess = data.material.shininess; 
+        }
+
+
+        function loadLights(data) {
+            data.lights.forEach(lightData => {
+                switch (lightData.light) {
+                    case 'worldLight':
+                        worldLight.light = lightData.light;
+                        worldLight.position = lightData.position;
+                        worldLight.ambient = lightData.ambient;
+                        worldLight.diffuse = lightData.diffuse;
+                        worldLight.specular = lightData.specular;
+                        worldLight.directional = lightData.directional;
+                        worldLight.active = lightData.active;
+                        break;
+                    case 'cameraLight':
+                        cameraLight.light = lightData.light;
+                        cameraLight.ambient = lightData.ambient;
+                        cameraLight.diffuse = lightData.diffuse;
+                        cameraLight.specular = lightData.specular;
+                        cameraLight.directional = lightData.directional;
+                        cameraLight.active = lightData.active;
+                        break;
+                    case 'objectLight':
+                        objectLight.light = lightData.light;
+                        objectLight.position = lightData.position;
+                        objectLight.ambient = lightData.ambient;
+                        objectLight.diffuse = lightData.diffuse;
+                        objectLight.specular = lightData.specular;
+                        objectLight.directional = lightData.directional;
+                        objectLight.active = lightData.active;
+                        break;
+                }
+            });
+        }
+
+
         function setupGUI() {
-      
-        const gui = new dat.GUI();
-
         setupOptionsGUI(gui);
-
         setupCameraGUI(gui);
-
         setupLightsGUI(gui);
-
-        setupObjectGUI(gui);
+        loadObjectGUI(gui);
         }
 
 
@@ -214,7 +261,7 @@ function setup(shaders) {
     }
 
 
-    function setupObjectGUI(gui) {
+    function loadObjectGUI(gui) {
         const objectGui = new dat.GUI(); 
 
         objectGui.domElement.id = "object-gui";
@@ -458,10 +505,10 @@ function setup(shaders) {
 
         for (let i = 0; i < lightsToSend.length; i++) { 
             let light = lightsToSend[i];
-                gl.uniform4fv(gl.getUniformLocation(current_program, `u_lights[${i}].pos`), vec4(light.position, light.directional ? 0.0 : 1.0));
-                gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Ia`), normalizeColor(light.ambient)); 
-                gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Id`), normalizeColor(light.diffuse));
-                gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Is`), normalizeColor(light.specular)); 
+                gl.uniform4fv(gl.getUniformLocation(current_program, `u_light[${i}].pos`), vec4(light.position, light.directional ? 0.0 : 1.0));
+                gl.uniform3fv(gl.getUniformLocation(current_program, `u_light[${i}].Ia`), normalizeColor(light.ambient)); 
+                gl.uniform3fv(gl.getUniformLocation(current_program, `u_light[${i}].Id`), normalizeColor(light.diffuse));
+                gl.uniform3fv(gl.getUniformLocation(current_program, `u_light[${i}].Is`), normalizeColor(light.specular)); 
         }
 
         mView = lookAt(camera.eye, camera.at, camera.up);

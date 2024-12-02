@@ -1,19 +1,54 @@
 {
   "scene": {
+    "camera": 
+    {
+      "at": [0, 0, 0],
+      "up": [0, 1, 0],
+      "fovy": 45,
+      "near": 0.1,
+      "far": 20
+    },
     "object": 
       {
         "name": "Cow",
         "position": [0, 0, 0],
         "rotation": [0, -90, 0],
         "scale": [1, 1, 1]
-      }
-    ,
+      },
     "material": {
         "shader": "gouraud",
         "Ka": [100.0, 100.0, 100.0],
         "Kd": [100.0, 100.0, 100.0],
         "Ks": [100.0, 100.0, 100.0],
         "shininess": 100
-    }
+    },
+    "lights": [
+        {
+        "light": "worldLight",
+        "position": [0.0, 0.0, 1.0],
+        "ambient": [51, 51, 51],
+        "diffuse": [76, 76, 76],
+        "specular": [255, 255, 255],
+        "directional": true,
+        "active": true
+        },
+        {
+        "light": "cameraLight",
+        "ambient": [51, 51, 51],
+        "diffuse": [76, 76, 76],
+        "specular": [255, 255, 255],
+        "directional": true,
+        "active": true
+        },
+        {
+        "light": "objectLight",
+        "position": [0.0, 0.0, -1.0],
+        "ambient": [51, 51, 51],
+        "diffuse": [76, 76, 76],
+        "specular": [255, 255, 255],
+        "directional": true,
+        "active": true
+        }
+    ]
   }
 }

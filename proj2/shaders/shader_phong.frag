@@ -15,11 +15,9 @@ struct MaterialInfo {
 uniform MaterialInfo u_material;
 uniform int u_numLights;
 
-in vec3 fLight;        // Light vector
 in vec3 fViewer;       // Vector to viewer
 in vec3 fNormal;       // Surface normal
-in vec3 fPosition;     // Vertex position
-in vec3 packedLightData[MAX_LIGHTS * 3]; // Packed light data
+in vec3 lightData[MAX_LIGHTS * 2]; //Packed light data - [0]: Ia, [1]: Id, [2]:Is, [3]: Light Vector
 
 out vec4 fColor;       // Fragment color
 
@@ -34,11 +32,11 @@ void main() {
 
   for (int i = 0; i < u_numLights; i++) {
 
-    vec3 Ia = packedLightData[i * 3 + 0]; 
-    vec3 Id = packedLightData[i * 3 + 1]; 
-    vec3 Is = packedLightData[i * 3 + 2];
+    vec3 Ia = lightData[i * 4 + 0]; 
+    vec3 Id = lightData[i * 4 + 1]; 
+    vec3 Is = lightData[i * 4 + 2];
 
-    vec3 L = normalize(fLight); 
+    vec3 L = normalize(lightData[i * 4 + 3]); 
     vec3 H = normalize(L + V);
 
     ambient += Ia * u_material.Ka; 
