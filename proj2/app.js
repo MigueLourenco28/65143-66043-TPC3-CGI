@@ -25,7 +25,7 @@ function setup(shaders) {
 
     let current_program = gouraud_program;
 
-    //------------------Camera Settings GUI------------------//
+    //------------------Initializations------------------//
 
     // Camera  
     let camera = {
@@ -43,7 +43,7 @@ function setup(shaders) {
         zBuffer: true,
         animation: false
     }
-
+    // Lights
     let worldLight = {
         position: vec3(0.0, 0.0, 1.0),
         ambient: vec3(51, 51, 51),
@@ -71,88 +71,15 @@ function setup(shaders) {
         active: true
     }
 
-    const gui = new dat.GUI();
-
-    const optionsGui = gui.addFolder("options");
-    optionsGui.add(options, "backface_culling");
-    optionsGui.add(options, "zBuffer");
-    optionsGui.add(options, "animation");
-
-    const cameraGui = gui.addFolder("camera");
-
-    cameraGui.add(camera, "fovy").min(1).max(179).step(1).listen();
-    cameraGui.add(camera, "aspect").min(0).max(10).step(0.01).listen().domElement.style.pointerEvents = "none";
-
-    cameraGui.add(camera, "near").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
-        camera.near = Math.min(camera.far - 0.5, v);
-    });
-
-    cameraGui.add(camera, "far").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
-        camera.far = Math.max(camera.near + 0.5, v);
-    });
-
-    const eye = cameraGui.addFolder("eye");
-    eye.add(camera.eye, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    eye.add(camera.eye, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    eye.add(camera.eye, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
-
-    const at = cameraGui.addFolder("at");
-    at.add(camera.at, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    at.add(camera.at, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    at.add(camera.at, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
-
-    const up = cameraGui.addFolder("up");
-    up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
-
-    const lightsGui = gui.addFolder("lights");
-
-    const worldLightGui = lightsGui.addFolder("world light");
-    const worldLightPositionGui = worldLightGui.addFolder("position");
-    worldLightPositionGui.add(worldLight.position, 0).name("x").step(0.05).listen();
-    worldLightPositionGui.add(worldLight.position, 1).name("y").step(0.05).listen();
-    worldLightPositionGui.add(worldLight.position, 2).name("z").step(0.05).listen();
-    worldLightGui.addColor(worldLight, "ambient").listen();
-    worldLightGui.addColor(worldLight, "diffuse").listen();
-    worldLightGui.addColor(worldLight, "specular").listen();
-    worldLightGui.add(worldLight, "directional").listen();
-    worldLightGui.add(worldLight, "active").listen();
-
-    const cameraLightGui = lightsGui.addFolder("camera light");
-    const cameraLightPositionGui = cameraLightGui.addFolder("position");
-    cameraLightPositionGui.add(cameraLight.position, 0).name("x").listen().domElement.style.pointerEvents = "none";;
-    cameraLightPositionGui.add(cameraLight.position, 1).name("y").listen().domElement.style.pointerEvents = "none";;
-    cameraLightPositionGui.add(cameraLight.position, 2).name("z").listen().domElement.style.pointerEvents = "none";;
-    cameraLightGui.addColor(cameraLight, "ambient").listen();
-    cameraLightGui.addColor(cameraLight, "diffuse").listen();
-    cameraLightGui.addColor(cameraLight, "specular").listen();
-    cameraLightGui.add(cameraLight, "directional").listen();
-    cameraLightGui.add(cameraLight, "active").listen();
-
-    const objectLightGui = lightsGui.addFolder("object light");
-    const objectLightPositionGui = objectLightGui.addFolder("position");
-    objectLightPositionGui.add(objectLight.position, 0).name("x").step(0.05).listen();
-    objectLightPositionGui.add(objectLight.position, 1).name("y").step(0.05).listen();
-    objectLightPositionGui.add(objectLight.position, 2).name("z").step(0.05).listen();
-    objectLightGui.addColor(objectLight, "ambient").listen();
-    objectLightGui.addColor(objectLight, "diffuse").listen();
-    objectLightGui.addColor(objectLight, "specular").listen();
-    objectLightGui.add(objectLight, "directional").listen();
-    objectLightGui.add(objectLight, "active").listen();
-
-    //------------------Camera Settings GUI------------------//
-
-    //------------------Object Settings GUI------------------//
-    const objectGui = new dat.GUI(); 
-    objectGui.domElement.id = "object-gui";
-
+    // Objects
+    // Fetch is asynchronous so we initialize object_data with data to avoid errors until JSON's data is retrieved
     let object_data = {
-        name: 'Cow',
+        name: 'default',
         position: vec3(0.0, 0.0, 0.0),
-        rotation: vec3(0.0, -90.0, 0.0),
-        scale: vec3(1.0, 1.0, 1.0),
+        rotation: vec3(0.0, 0.0, 0.0),
+        scale: vec3(0.0, 0.0, 0.0),
     }
+    
 
     let material = {
         shader: 'gouraud',
@@ -162,39 +89,169 @@ function setup(shaders) {
         shininess: 100,
     }
 
-    objectGui.add(object_data, 'name', ['Cow', 'Bunny', 'Sphere', 'Cube']).name('name');
 
-    const transformGui = objectGui.addFolder("transform");
 
-    const positionGui = transformGui.addFolder("position");
-    positionGui.add(object_data.position, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
-    positionGui.add(object_data.position, 1).name("y").min(0.0).max(1.0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    positionGui.add(object_data.position, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+    // Fetch the JSON file
+    fetch('./scene.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const objects = data.scene.objects;
+            // Initialize and fill your object_data with JSON content
+            setupObject(objects);
+            
+            console.log(object_data);
+            console.log("before");
+            setupGUI();
+            console.log("after");
+        })
+        .catch(error => {
+            console.error('Error fetching the JSON file:', error);
+        });
 
-    const rotationGui = transformGui.addFolder("rotation");
-    rotationGui.add(object_data.rotation, 0).name("x").min(-1.0).domElement.style.pointerEvents = "none";;
-    rotationGui.add(object_data.rotation, 1).name("y").min(-180).max(180).step(1).listen();;
-    rotationGui.add(object_data.rotation, 2).name("z").min(-1.0).domElement.style.pointerEvents = "none";;
 
-    const scaleGui = transformGui.addFolder("scale");
-    scaleGui.add(object_data.scale, 0).name("x").min(0.0).max(1.0).step(0.05).listen();;
-    scaleGui.add(object_data.scale, 1).name("y").min(0.0).max(1.0).step(0.05).listen();;
-    scaleGui.add(object_data.scale, 2).name("z").min(0.0).max(1.0).step(0.05).listen();;
+        function setupObject(data) {
+            object_data.name = data[0].name;
+            object_data.position = data[0].position;
+            object_data.rotation = data[0].rotation;
+            object_data.scale = data[0].scale;
+        }
 
-    const materialGui = objectGui.addFolder("material");
 
-    materialGui.add(material, "shader", ['phong', 'gouraud']).name('shader').listen();
-    materialGui.addColor(material, "Ka").listen();
-    materialGui.addColor(material, "Kd").listen();
-    materialGui.addColor(material, "Ks").listen();
-    materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
+        function setupGUI() {
+      
+        const gui = new dat.GUI();
+
+        setupOptionsGUI(gui);
+
+        setupCameraGUI(gui);
+
+        setupLightsGUI(gui);
+
+        setupObjectGUI(gui);
+        }
+
+
+    function setupOptionsGUI(gui) {
+        const optionsGui = gui.addFolder("options");
+        optionsGui.add(options, "backface_culling");
+        optionsGui.add(options, "zBuffer");
+        optionsGui.add(options, "animation");
+    }
+
     
+    function setupCameraGUI(gui) {
+        const cameraGui = gui.addFolder("camera");
+    
+        cameraGui.add(camera, "fovy").min(1).max(179).step(1).listen();
+        cameraGui.add(camera, "aspect").min(0).max(10).step(0.01).listen().domElement.style.pointerEvents = "none";
+    
+        cameraGui.add(camera, "near").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
+            camera.near = Math.min(camera.far - 0.5, v);
+        });
+    
+        cameraGui.add(camera, "far").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
+            camera.far = Math.max(camera.near + 0.5, v);
+        });
+    
+        const eye = cameraGui.addFolder("eye");
+        eye.add(camera.eye, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        eye.add(camera.eye, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        eye.add(camera.eye, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    
+        const at = cameraGui.addFolder("at");
+        at.add(camera.at, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        at.add(camera.at, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        at.add(camera.at, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    
+        const up = cameraGui.addFolder("up");
+        up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    }
+    
+    
+    function setupLightsGUI(gui) {
+        const lightsGui = gui.addFolder("lights");
+    
+        const worldLightGui = lightsGui.addFolder("world light");
+        const worldLightPositionGui = worldLightGui.addFolder("position");
+        worldLightPositionGui.add(worldLight.position, 0).name("x").step(0.05).listen();
+        worldLightPositionGui.add(worldLight.position, 1).name("y").step(0.05).listen();
+        worldLightPositionGui.add(worldLight.position, 2).name("z").step(0.05).listen();
+        worldLightGui.addColor(worldLight, "ambient").listen();
+        worldLightGui.addColor(worldLight, "diffuse").listen();
+        worldLightGui.addColor(worldLight, "specular").listen();
+        worldLightGui.add(worldLight, "directional").listen();
+        worldLightGui.add(worldLight, "active").listen();
+    
+        const cameraLightGui = lightsGui.addFolder("camera light");
+        const cameraLightPositionGui = cameraLightGui.addFolder("position");
+        cameraLightPositionGui.add(cameraLight.position, 0).name("x").listen().domElement.style.pointerEvents = "none";;
+        cameraLightPositionGui.add(cameraLight.position, 1).name("y").listen().domElement.style.pointerEvents = "none";;
+        cameraLightPositionGui.add(cameraLight.position, 2).name("z").listen().domElement.style.pointerEvents = "none";;
+        cameraLightGui.addColor(cameraLight, "ambient").listen();
+        cameraLightGui.addColor(cameraLight, "diffuse").listen();
+        cameraLightGui.addColor(cameraLight, "specular").listen();
+        cameraLightGui.add(cameraLight, "directional").listen();
+        cameraLightGui.add(cameraLight, "active").listen();
+    
+        const objectLightGui = lightsGui.addFolder("object light");
+        const objectLightPositionGui = objectLightGui.addFolder("position");
+        objectLightPositionGui.add(objectLight.position, 0).name("x").step(0.05).listen();
+        objectLightPositionGui.add(objectLight.position, 1).name("y").step(0.05).listen();
+        objectLightPositionGui.add(objectLight.position, 2).name("z").step(0.05).listen();
+        objectLightGui.addColor(objectLight, "ambient").listen();
+        objectLightGui.addColor(objectLight, "diffuse").listen();
+        objectLightGui.addColor(objectLight, "specular").listen();
+        objectLightGui.add(objectLight, "directional").listen();
+        objectLightGui.add(objectLight, "active").listen();
+    }
 
 
-    //------------------Object Settings GUI------------------//
+    function setupObjectGUI(gui) {
+        const objectGui = new dat.GUI(); 
+
+        objectGui.domElement.id = "object-gui";
+    
+        objectGui.add(object_data, 'name', ['Cow', 'Bunny', 'Sphere', 'Cube']).name('name');
+    
+        const transformGui = objectGui.addFolder("transform");
+    
+        const positionGui = transformGui.addFolder("position");
+        positionGui.add(object_data.position, 0).name("x").min(-1.0).max(1.0).step(0.05).listen();;
+        positionGui.add(object_data.position, 1).name("y").min(0.0).max(1.0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+        positionGui.add(object_data.position, 2).name("z").min(-1.0).max(1.0).step(0.05).listen();;
+    
+        const rotationGui = transformGui.addFolder("rotation");
+        rotationGui.add(object_data.rotation, 0).name("x").min(-1.0).domElement.style.pointerEvents = "none";;
+        rotationGui.add(object_data.rotation, 1).name("y").min(-180).max(180).step(1).listen();;
+        rotationGui.add(object_data.rotation, 2).name("z").min(-1.0).domElement.style.pointerEvents = "none";;
+    
+        const scaleGui = transformGui.addFolder("scale");
+        scaleGui.add(object_data.scale, 0).name("x").min(0.0).max(1.0).step(0.05).listen();;
+        scaleGui.add(object_data.scale, 1).name("y").min(0.0).max(1.0).step(0.05).listen();;
+        scaleGui.add(object_data.scale, 2).name("z").min(0.0).max(1.0).step(0.05).listen();;
+    
+        const materialGui = objectGui.addFolder("material");
+    
+        materialGui.add(material, "shader", ['phong', 'gouraud']).name('shader').listen();
+        materialGui.addColor(material, "Ka").listen();
+        materialGui.addColor(material, "Kd").listen();
+        materialGui.addColor(material, "Ks").listen();
+        materialGui.add(material, "shininess").min(0).max(100).step(1).listen();
+    }
+
 
     // matrices
-    let mView, mProjection;
+    
+    let mView = lookAt(camera.eye, camera.at, camera.up);
+
+    let mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
 
     let down = false;
     let lastX, lastY;
@@ -302,6 +359,8 @@ function setup(shaders) {
         STACK.multScale(vec3(3.0, 0.01, 3.0));
 
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
+
         CUBE.draw(gl, current_program, gl.TRIANGLES);
     }
 
@@ -312,7 +371,7 @@ function setup(shaders) {
 
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
-        
+
         if(object_data.name == 'Cow') 
             COW.draw(gl, current_program, gl.TRIANGLES);
         else if(object_data.name == 'Bunny')
@@ -386,7 +445,7 @@ function setup(shaders) {
     ]; 
 
 
-    function setUniforms() { 
+    function updateUniforms() { 
 
         let lightsToSend = allLights.filter(light => light.active);
 
@@ -402,9 +461,21 @@ function setup(shaders) {
                 gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Ia`), normalizeColor(light.ambient)); 
                 gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Id`), normalizeColor(light.diffuse));
                 gl.uniform3fv(gl.getUniformLocation(current_program, `u_lights[${i}].Is`), normalizeColor(light.specular)); 
-        } 
+        }
+
+        mView = lookAt(camera.eye, camera.at, camera.up);
+
+        mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_projection"), false, flatten(mProjection));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view"), false, flatten(mView));
+        let u_view_normals = normalMatrix(mView);
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view_normals"), false, flatten(u_view_normals));
     }
 
+    
     let speed = 0.005; // Speed of the animation
     let amplitude = 0.5; // Amplitude of the animation
     let baseHeight = object_data.position[1]; // Base height of the object
@@ -422,7 +493,7 @@ function setup(shaders) {
 
         gl.useProgram(current_program);
 
-        setUniforms(); // Ensure uniforms are set before rendering
+        updateUniforms(); // Ensure uniforms are set before rendering
 
         if (options.backface_culling) 
             gl.enable(gl.CULL_FACE);
@@ -442,20 +513,8 @@ function setup(shaders) {
             // Update rotation
             object_data.rotation[1] = time * 50 * speed;
         }
-            
 
-
-        mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
-
-        mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
-
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_projection"), false, flatten(mProjection));
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view"), false, flatten(mView));
-        let u_view_normals = normalMatrix(mView);
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view_normals"), false, flatten(u_view_normals));
 
         STACK.pushMatrix();
             surface();
