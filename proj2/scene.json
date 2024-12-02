@@ -1,13 +1,19 @@
 {
-    "scene": {
-      "objects": [
-        {
-          "name": "Cow",
-          "position": [0, 0, 0],
-          "rotation": [0, -90, 0],
-          "scale": [1, 1, 1]
-        }
-      ]
+  "scene": {
+    "object": 
+      {
+        "name": "Cow",
+        "position": [0, 0, 0],
+        "rotation": [0, -90, 0],
+        "scale": [1, 1, 1]
+      }
+    ,
+    "material": {
+        "shader": "gouraud",
+        "Ka": [100.0, 100.0, 100.0],
+        "Kd": [100.0, 100.0, 100.0],
+        "Ks": [100.0, 100.0, 100.0],
+        "shininess": 100
     }
   }
-  
+}

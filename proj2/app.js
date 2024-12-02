@@ -100,13 +100,13 @@ function setup(shaders) {
             return response.json();
         })
         .then(data => {
-            const objects = data.scene.objects;
+            const object = data.scene.object;
             // Initialize and fill your object_data with JSON content
-            setupObject(objects);
+            setupObject(object);
             
             console.log(object_data);
             console.log("before");
-            setupGUI();
+
             console.log("after");
         })
         .catch(error => {
@@ -115,13 +115,14 @@ function setup(shaders) {
 
 
         function setupObject(data) {
-            object_data.name = data[0].name;
-            object_data.position = data[0].position;
-            object_data.rotation = data[0].rotation;
-            object_data.scale = data[0].scale;
+            object_data.name = data.name;
+            object_data.position = data.position;
+            object_data.rotation = data.rotation;
+            object_data.scale = data.scale;
         }
 
-
+        setupGUI();
+        
         function setupGUI() {
       
         const gui = new dat.GUI();
