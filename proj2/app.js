@@ -469,6 +469,28 @@ function setup(shaders) {
         STACK.popMatrix();
     }
 
+    function camera_light() {
+        STACK.multTranslation(cameraLight.position);
+        STACK.multScale(vec3(0.1, 0.1, 0.1));
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
+            
+        gl.useProgram(light_program);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(mProjection));
+            
+        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+
+        if(cameraLight.active) 
+            gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), normalizeColor(cameraLight.diffuse));
+        else 
+            gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), vec3(0.0, 0.0, 0.0));
+
+        SPHERE.draw(gl, light_program, gl.TRIANGLES);
+        gl.useProgram(current_program);
+    }
+
     function object_light() {
         STACK.multTranslation(objectLight.position);
         STACK.multScale(vec3(0.1, 0.1, 0.1));
@@ -571,10 +593,13 @@ function setup(shaders) {
         STACK.pushMatrix();
             STACK.multTranslation(object_data.position);
             STACK.multRotationY(object_data.rotation[1]); 
-            object();
+            STACK.pushMatrix();
+                object();
+            STACK.popMatrix();
+            object_light();
         STACK.popMatrix();
         world_light();
-        object_light();
+        camera_light();
     }
 }
 
