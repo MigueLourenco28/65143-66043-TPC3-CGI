@@ -311,6 +311,8 @@ function setup(shaders) {
         STACK.multScale(object_data.scale);
 
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
+        
         if(object_data.name == 'Cow') 
             COW.draw(gl, current_program, gl.TRIANGLES);
         else if(object_data.name == 'Bunny')
