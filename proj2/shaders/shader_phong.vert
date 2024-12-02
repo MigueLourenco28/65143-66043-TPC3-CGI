@@ -51,7 +51,7 @@ void main(){
         if(u_lights[i].pos.w == 0.0)  
             fLight = normalize((u_view_normals * u_lights[i].pos).xyz); 
         else  
-            fLight = normalize((u_view*u_lights[i].pos).xyz - posC);
+            fLight = normalize((u_view * u_lights[i].pos).xyz - posC);
     }
 
     gl_Position = u_projection * u_model_view * v_position;

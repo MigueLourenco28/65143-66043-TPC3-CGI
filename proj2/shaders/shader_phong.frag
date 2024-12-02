@@ -52,5 +52,6 @@ void main() {
       specular = vec3(0.0, 0.0, 0.0); 
 
   }
+  
   fColor = vec4(ambient + diffuse + specular, 1.0);
 }

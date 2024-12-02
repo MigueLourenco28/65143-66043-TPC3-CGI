@@ -37,7 +37,7 @@ void main() {
 
     vec3 posC = (u_model_view * v_position).xyz; // Camera position
 
-    vec3 N = normalize((u_normals*v_normal).xyz);
+    vec3 N = normalize((u_normals * v_normal).xyz);
     vec3 V = normalize(-posC);
 
     vec3 totalAmbient = vec3(0.0);
@@ -49,11 +49,11 @@ void main() {
         vec3 L;
 
         if(u_lights[i].pos.w == 0.0)  
-            L = normalize((u_view_normals*u_lights[i].pos).xyz); 
+            L = normalize((u_view_normals * u_lights[i].pos).xyz); 
         else  
-            L = normalize((u_view*u_lights[i].pos).xyz - posC);
+            L = normalize((u_view * u_lights[i].pos).xyz - posC);
 
-        vec3 H = normalize(L+V);
+        vec3 H = normalize(L + V);
 
         float diffuseFactor = max(dot(L,N), 0.0); // Prevent retro-ilumination
         float specularFactor = pow(max(dot(N,H), 0.0), u_material.shininess); // Intensity of the specular reflexion

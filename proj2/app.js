@@ -150,7 +150,7 @@ function setup(shaders) {
     let object_data = {
         name: 'Cow',
         position: vec3(0.0, 0.0, 0.0),
-        rotation: vec3(0, -90, 0),
+        rotation: vec3(0.0, -90.0, 0.0),
         scale: vec3(1.0, 1.0, 1.0),
     }
 
@@ -336,7 +336,7 @@ function setup(shaders) {
             STACK.multScale(vec3(0.1, 0.1, 0.1));
 
             gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
-            gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(STACK.modelView()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
             
             gl.useProgram(light_program);
 
@@ -360,7 +360,7 @@ function setup(shaders) {
         STACK.multScale(vec3(0.1, 0.1, 0.1));
 
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(STACK.modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
             
         gl.useProgram(light_program);
 
@@ -406,6 +406,7 @@ function setup(shaders) {
     let speed = 0.005; // Speed of the animation
     let amplitude = 0.5; // Amplitude of the animation
     let baseHeight = object_data.position[1]; // Base height of the object
+    
     function render(time) {
         window.requestAnimationFrame(render);
 
