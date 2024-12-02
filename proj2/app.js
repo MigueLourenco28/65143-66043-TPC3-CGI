@@ -91,7 +91,7 @@ function setup(shaders) {
     const gui = new dat.GUI();
 
 
-    // Fetch the JSON file
+    //-----------Fetch the JSON file-----------//
     fetch('./scene.json')
         .then(response => {
             if (!response.ok) {
@@ -406,6 +406,11 @@ function setup(shaders) {
         STACK.multTranslation(vec3(0.0, -0.5, 0.0));
         STACK.multScale(vec3(3.0, 0.01, 3.0));
 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(vec3(50, 50, 50))); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(vec3(0, 255, 0))); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(vec3(255, 255, 255))); 
+        gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), 100);
+
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
 
@@ -413,9 +418,12 @@ function setup(shaders) {
     }
 
     function object() {
-        STACK.multTranslation(object_data.position);
-        STACK.multRotationY(object_data.rotation[1]); 
         STACK.multScale(object_data.scale);
+
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
+        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
+        gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess);
 
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
@@ -437,9 +445,7 @@ function setup(shaders) {
             color[2] / 255.0);
     }
 
-    function lights() {
-
-        //--------World Light--------//
+    function world_light() {
         STACK.pushMatrix();
             STACK.multTranslation(worldLight.position);
             STACK.multScale(vec3(0.1, 0.1, 0.1));
@@ -461,10 +467,9 @@ function setup(shaders) {
             SPHERE.draw(gl, light_program, gl.TRIANGLES);
             gl.useProgram(current_program);
         STACK.popMatrix();
+    }
 
-        // Camera light: Deleted this sphere because it cannot be seen
-
-        //---------Object light---------//
+    function object_light() {
         STACK.multTranslation(objectLight.position);
         STACK.multScale(vec3(0.1, 0.1, 0.1));
 
@@ -497,10 +502,6 @@ function setup(shaders) {
 
         let lightsToSend = allLights.filter(light => light.active);
 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ka'), normalizeColor(material.Ka)); 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Kd'), normalizeColor(material.Kd)); 
-        gl.uniform3fv(gl.getUniformLocation(current_program, 'u_material.Ks'), normalizeColor(material.Ks)); 
-        gl.uniform1f(gl.getUniformLocation(current_program, 'u_material.shininess'), material.shininess);
         gl.uniform1i(gl.getUniformLocation(current_program, 'u_numLights'), lightsToSend.length); 
 
         for (let i = 0; i < lightsToSend.length; i++) { 
@@ -568,9 +569,14 @@ function setup(shaders) {
             surface();
         STACK.popMatrix();
         STACK.pushMatrix();
-            object();
+            STACK.multTranslation(object_data.position);
+            STACK.multRotationY(object_data.rotation[1]); 
+            STACK.pushMatrix();
+                object();
+            STACK.popMatrix();  
+            object_light();
         STACK.popMatrix();
-        lights();
+        world_light();
     }
 }
 

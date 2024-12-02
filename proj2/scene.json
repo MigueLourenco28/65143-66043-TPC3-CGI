@@ -18,7 +18,7 @@
     "material": {
         "shader": "gouraud",
         "Ka": [100.0, 100.0, 100.0],
-        "Kd": [100.0, 100.0, 100.0],
+        "Kd": [50.0, 50.0, 255.0],
         "Ks": [100.0, 100.0, 100.0],
         "shininess": 100
     },
@@ -27,27 +27,27 @@
         "light": "worldLight",
         "position": [0.0, 0.0, 1.0],
         "ambient": [51, 51, 51],
-        "diffuse": [76, 76, 76],
+        "diffuse": [255, 255, 255],
         "specular": [255, 255, 255],
-        "directional": true,
-        "active": true
+        "directional": false,
+        "active": false
         },
         {
         "light": "cameraLight",
         "ambient": [51, 51, 51],
-        "diffuse": [76, 76, 76],
+        "diffuse": [255, 255, 255],
         "specular": [255, 255, 255],
-        "directional": true,
+        "directional": false,
         "active": true
         },
         {
         "light": "objectLight",
         "position": [0.0, 0.0, -1.0],
         "ambient": [51, 51, 51],
-        "diffuse": [76, 76, 76],
+        "diffuse": [255, 255, 255],
         "specular": [255, 255, 255],
-        "directional": true,
-        "active": true
+        "directional": false,
+        "active": false
         }
     ]
   }
