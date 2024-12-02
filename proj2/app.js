@@ -558,7 +558,8 @@ function setup(shaders) {
         );
 
         let i = allLights.filter(light => light.active).length - 1; // last of all active lights
-        gl.uniform4fv(gl.getUniformLocation(current_program, `u_light[${i}].pos`), vec4(transformedLightPosition, objectLight.directional ? 0.0 : 1.0));
+        if (objectLight.active)
+            gl.uniform4fv(gl.getUniformLocation(current_program, `u_light[${i}].pos`), vec4(transformedLightPosition, objectLight.directional ? 0.0 : 1.0));
     }
     
     let speed = 0.005; // Speed of the animation
