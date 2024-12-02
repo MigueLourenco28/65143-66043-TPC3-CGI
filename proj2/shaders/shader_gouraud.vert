@@ -21,13 +21,13 @@ uniform LightInfo u_light[MAX_LIGHTS];
 uniform int u_numLights;
 
 in vec4 v_position;
-in vec4 v_normal; // TODO: Vetor normal constante
+in vec4 v_normal; // Vetor normal constante
 
 uniform mat4 u_model_view;      // model-view transformatio
 uniform mat4 u_normals;         // model-view transformation
 // For normals
-uniform mat4 u_view;            // TODO: view transformation
-uniform mat4 u_view_normals;    // TODO: view transf. for vectors
+uniform mat4 u_view;            // view transformation
+uniform mat4 u_view_normals;    // view transf. for vectors
 uniform mat4 u_projection;      // projection matrix
 
 out vec4 color;

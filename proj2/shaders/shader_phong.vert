@@ -16,15 +16,14 @@ uniform int u_numLights;
 uniform mat4 u_model_view;      // model-view transformatio
 uniform mat4 u_normals;         // model-view transformation
 // For normals
-uniform mat4 u_view;            // TODO: view transformation
-uniform mat4 u_view_normals;    // TODO: view transf. for vectors
+uniform mat4 u_view;            // View transformation
+uniform mat4 u_view_normals;    // View transformation for vectors
 uniform mat4 u_projection;      // projection matrix
 
 in vec4 v_position;
-in vec4 v_normal; // TODO: Vetor normal constante
+in vec4 v_normal; // Vetor normal constante
 
 out vec3 fNormal;       // normal vector in camera space  
-//out vec3 fLights[3]; // Array to pass light vectors
 out vec3 fViewer;       // View vector in camera space
 out vec3 lightData[MAX_LIGHTS * 2]; //Packed light data - [0]: Ia, [1]: Id, [2]:Is, [3]: Light Vector
 

@@ -30,7 +30,7 @@
         "diffuse": [255, 255, 255],
         "specular": [255, 255, 255],
         "directional": false,
-        "active": false
+        "active": true
         },
         {
         "light": "cameraLight",
@@ -47,7 +47,7 @@
         "diffuse": [255, 255, 255],
         "specular": [255, 255, 255],
         "directional": false,
-        "active": false
+        "active": true
         }
     ]
   }
