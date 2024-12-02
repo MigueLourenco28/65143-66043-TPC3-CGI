@@ -571,12 +571,10 @@ function setup(shaders) {
         STACK.pushMatrix();
             STACK.multTranslation(object_data.position);
             STACK.multRotationY(object_data.rotation[1]); 
-            STACK.pushMatrix();
-                object();
-            STACK.popMatrix();  
-            object_light();
+            object();
         STACK.popMatrix();
         world_light();
+        object_light();
     }
 }
 
