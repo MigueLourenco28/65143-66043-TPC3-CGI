@@ -492,25 +492,28 @@ function setup(shaders) {
     }
 
     function object_light() {
-        STACK.multTranslation(objectLight.position);
-        STACK.multScale(vec3(0.1, 0.1, 0.1));
+        STACK.pushMatrix();
+            STACK.multTranslation(objectLight.position);
+            STACK.multScale(vec3(0.1, 0.1, 0.1));
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
-        gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
-            
-        gl.useProgram(light_program);
+            gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_model_view"), false, flatten(STACK.modelView()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
+                
+            gl.useProgram(light_program);
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(mProjection));
-            
-        gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_projection"), false, flatten(mProjection));
+                
+            gl.uniformMatrix4fv(gl.getUniformLocation(light_program, "u_model_view"), false, flatten(STACK.modelView()));
 
-        if(objectLight.active) 
-            gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), normalizeColor(objectLight.diffuse));
-        else 
-            gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), vec3(0.0, 0.0, 0.0));
+            if(objectLight.active) 
+                gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), normalizeColor(objectLight.diffuse));
+            else 
+                gl.uniform3fv(gl.getUniformLocation(light_program, "u_color"), vec3(0.0, 0.0, 0.0));
 
-        SPHERE.draw(gl, light_program, gl.TRIANGLES);
-        gl.useProgram(current_program);
+            SPHERE.draw(gl, light_program, gl.TRIANGLES);
+            gl.useProgram(current_program);
+        STACK.popMatrix();
+
     }
 
     let allLights = [ 
@@ -519,9 +522,7 @@ function setup(shaders) {
         objectLight 
     ]; 
 
-
-    function updateUniforms() { 
-
+    function udpateLights() {
         let lightsToSend = allLights.filter(light => light.active);
 
         gl.uniform1i(gl.getUniformLocation(current_program, 'u_numLights'), lightsToSend.length); 
@@ -533,7 +534,9 @@ function setup(shaders) {
                 gl.uniform3fv(gl.getUniformLocation(current_program, `u_light[${i}].Id`), normalizeColor(light.diffuse));
                 gl.uniform3fv(gl.getUniformLocation(current_program, `u_light[${i}].Is`), normalizeColor(light.specular)); 
         }
+    }
 
+    function updateUniforms() { 
         mView = lookAt(camera.eye, camera.at, camera.up);
 
         mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
@@ -546,6 +549,17 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(current_program, "u_view_normals"), false, flatten(u_view_normals));
     }
 
+    function findObjectLightPos() {
+        const angle = object_data.rotation[1] * Math.PI / 180; // Convert angle to radians
+        const transformedLightPosition = vec3(
+            object_data.position[0] + objectLight.position[0] * Math.cos(angle) + objectLight.position[2] * Math.sin(angle),
+            object_data.position[1] + objectLight.position[1],
+            object_data.position[2] + objectLight.position[0] * Math.sin(angle) + objectLight.position[2] * Math.cos(angle)
+        );
+
+        let i = allLights.filter(light => light.active).length - 1; // last of all active lights
+        gl.uniform4fv(gl.getUniformLocation(current_program, `u_light[${i}].pos`), vec4(transformedLightPosition, objectLight.directional ? 0.0 : 1.0));
+    }
     
     let speed = 0.005; // Speed of the animation
     let amplitude = 0.5; // Amplitude of the animation
@@ -564,6 +578,7 @@ function setup(shaders) {
 
         gl.useProgram(current_program);
 
+        udpateLights();
         updateUniforms(); // Ensure uniforms are set before rendering
 
         if (options.backface_culling) 
@@ -585,14 +600,17 @@ function setup(shaders) {
             object_data.rotation[1] = time * 50 * speed;
         }
 
+
         STACK.loadMatrix(mView);
 
         STACK.pushMatrix();
-            surface();
+        findObjectLightPos();
+        surface();
         STACK.popMatrix();
         STACK.pushMatrix();
-            STACK.multTranslation(object_data.position);
-            STACK.multRotationY(object_data.rotation[1]); 
+            STACK.multTranslation(object_data.position);   
+            STACK.multRotationY(object_data.rotation[1]);
+            findObjectLightPos();
             STACK.pushMatrix();
                 object();
             STACK.popMatrix();
